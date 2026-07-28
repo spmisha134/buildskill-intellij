@@ -2,6 +2,7 @@ package com.spmisha134.skillops.insights.settings
 
 data class SkillOpsInsightsSettings(
     var codexHomePath: String = "~/.codex",
+    var claudeHomePath: String = "~/.claude",
     var maxSessionsToScan: Int = 200,
     var autoRefreshEnabled: Boolean = true,
     var refreshIntervalSeconds: Int = 10,
@@ -12,11 +13,13 @@ data class SkillOpsInsightsSettings(
     var manySearchesThreshold: Int = 10,
     var showStatusBarWidget: Boolean = true,
     var enableSuggestions: Boolean = true,
+    var geminiHomePath: String = "~/.gemini",
 ) {
     fun normalized(): SkillOpsInsightsSettings {
         val normalizedLargeOutputWarningBytes = largeOutputWarningBytes.coerceAtLeast(1)
         return copy(
             codexHomePath = codexHomePath.ifBlank { DEFAULT_CODEX_HOME_PATH },
+            claudeHomePath = claudeHomePath.ifBlank { DEFAULT_CLAUDE_HOME_PATH },
             maxSessionsToScan = maxSessionsToScan.coerceAtLeast(1),
             refreshIntervalSeconds = refreshIntervalSeconds.coerceAtLeast(5),
             completedRunQuietPeriodSeconds = completedRunQuietPeriodSeconds.coerceAtLeast(0),
@@ -24,6 +27,7 @@ data class SkillOpsInsightsSettings(
             largeOutputWarningBytes = normalizedLargeOutputWarningBytes,
             highOutputWarningBytes = highOutputWarningBytes.coerceAtLeast(normalizedLargeOutputWarningBytes),
             manySearchesThreshold = manySearchesThreshold.coerceAtLeast(1),
+            geminiHomePath = geminiHomePath.ifBlank { DEFAULT_GEMINI_HOME_PATH },
         )
     }
 
@@ -51,5 +55,7 @@ data class SkillOpsInsightsSettings(
 
     companion object {
         const val DEFAULT_CODEX_HOME_PATH = "~/.codex"
+        const val DEFAULT_CLAUDE_HOME_PATH = "~/.claude"
+        const val DEFAULT_GEMINI_HOME_PATH = "~/.gemini"
     }
 }

@@ -24,22 +24,22 @@ intellijPlatform {
         name = "SkillOps"
         description = """
             <p><strong>Create reliable, repository-scoped skills for Codex, Claude Code, and Gemini CLI without leaving IntelliJ IDEA.</strong></p>
-            <p>SkillOps removes the repetitive setup from skill authoring and helps you understand how Codex sessions use context and tokens.</p>
+            <p>SkillOps removes the repetitive setup from skill authoring and helps you understand how Codex, Claude, and Gemini sessions use context and tokens.</p>
             <ul>
                 <li>Create platform-specific skills with structured <code>SKILL.md</code> content and supporting references.</li>
                 <li>Generate optional scripts and assets, plus Codex interface metadata.</li>
                 <li>Validate Codex skills before committing them.</li>
-                <li>Review local Codex run history, token usage, efficiency, rate-limit status, and sessions without skills.</li>
+                <li>Review local Codex, Claude, and Gemini run history, token usage, cache behavior, efficiency, and sessions without skills.</li>
             </ul>
             <p><strong>Private by design:</strong> generation, validation, and session analysis run locally. SkillOps does not upload project files, prompts, session logs, credentials, or analytics.</p>
         """.trimIndent()
         changeNotes = """
             <ul>
-                <li>Initial release of SkillOps.</li>
-                <li>Creates project skills for Codex, Claude Code, and Gemini CLI.</li>
-                <li>Generates <code>SKILL.md</code>, reference files, optional support folders, and Codex interface metadata.</li>
-                <li>Adds deterministic validation for generated and existing skills.</li>
-                <li>Adds local Codex run history with token usage and efficiency insights.</li>
+                <li>Adds local run insights for Claude Code and Gemini CLI alongside Codex.</li>
+                <li>Shows provider-specific token, cache, tool-call, search, and skill-attribution metrics.</li>
+                <li>Merges Claude subagent activity into parent sessions and deduplicates assistant usage.</li>
+                <li>Uses Gemini project mappings for exact repository ownership and structured skill activation.</li>
+                <li>Refactors session analysis into shared provider-neutral infrastructure while preserving Codex insights.</li>
             </ul>
         """.trimIndent()
 

@@ -1,13 +1,13 @@
-package com.spmisha134.skillops.insights.run
+package com.spmisha134.skillops.insights.codex
 
-import com.spmisha134.skillops.insights.parser.CodexRawEvent
+import com.spmisha134.skillops.insights.parser.RawInsightEvent
 
-class SkillUsageMatcher {
-    fun matchSkill(events: List<CodexRawEvent>, skillNames: List<String>): String? {
+class CodexSkillUsageMatcher {
+    fun matchSkill(events: List<RawInsightEvent>, skillNames: List<String>): String? {
         return matchSkills(events, skillNames).firstOrNull()
     }
 
-    fun matchSkills(events: List<CodexRawEvent>, skillNames: List<String>): List<String> {
+    fun matchSkills(events: List<RawInsightEvent>, skillNames: List<String>): List<String> {
         if (events.isEmpty() || skillNames.isEmpty()) {
             return emptyList()
         }
@@ -38,10 +38,10 @@ class SkillUsageMatcher {
         }
     }
 
-    fun detectRecordedSkillNames(events: List<CodexRawEvent>): List<String> {
+    fun detectRecordedSkillNames(events: List<RawInsightEvent>): List<String> {
         val searchableText = events
             .asSequence()
-            .map(CodexRawEvent::rawText)
+            .map(RawInsightEvent::rawText)
             .filter { rawText ->
                 rawText.contains("\"role\":\"user\"") &&
                     rawText.contains("<skill>") &&
@@ -53,7 +53,7 @@ class SkillUsageMatcher {
             .distinctBy(String::lowercase)
     }
 
-    fun invocationCommand(events: List<CodexRawEvent>): String? {
+    fun invocationCommand(events: List<RawInsightEvent>): String? {
         val skillEventIndex = events.indexOfFirst { event ->
             event.rawText.contains("\"role\":\"user\"") &&
                 event.rawText.contains("<skill>") &&
@@ -68,7 +68,7 @@ class SkillUsageMatcher {
             .firstNotNullOfOrNull(::userMessage)
     }
 
-    private fun userMessage(event: CodexRawEvent): String? {
+    private fun userMessage(event: RawInsightEvent): String? {
         val payload = event.payload?.getAsJsonObject("payload") ?: return null
         if (payload.get("type")?.asString != "user_message") {
             return null
@@ -80,7 +80,7 @@ class SkillUsageMatcher {
             ?.takeIf(String::isNotEmpty)
     }
 
-    private fun isUserAuthored(event: CodexRawEvent): Boolean {
+    private fun isUserAuthored(event: RawInsightEvent): Boolean {
         val payload = event.payload?.getAsJsonObject("payload") ?: return false
         return payload.get("role")?.asString == "user" ||
             payload.get("type")?.asString == "user_message"

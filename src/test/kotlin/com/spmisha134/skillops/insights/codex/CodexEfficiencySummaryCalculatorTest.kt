@@ -1,8 +1,7 @@
-package com.spmisha134.skillops.insights.run
+package com.spmisha134.skillops.insights.codex
 
-import com.spmisha134.skillops.insights.parser.CodexJsonlParser
+import com.spmisha134.skillops.insights.parser.InsightJsonlParser
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettings
-import com.spmisha134.skillops.insights.usage.TokenUsageExtractor
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -10,7 +9,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.nio.file.Files
 
-class EfficiencySummaryCalculatorTest {
+class CodexEfficiencySummaryCalculatorTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
@@ -21,9 +20,9 @@ class EfficiencySummaryCalculatorTest {
             """{"type":"tool_call","payload":{"cmd":"rg Skill"}}""",
             """{"type":"token_count","payload":{"usage":{"input_tokens":1000,"output_tokens":250,"cached_input_tokens":400,"reasoning_output_tokens":50}}}""",
         )
-        val usage = TokenUsageExtractor().extract(events)
+        val usage = CodexUsageExtractor().extract(events)
 
-        val summary = EfficiencySummaryCalculator().calculate(
+        val summary = CodexEfficiencySummaryCalculator().calculate(
             events = events,
             tokenUsage = usage,
             sizeBytes = 20_000,
@@ -43,7 +42,7 @@ class EfficiencySummaryCalculatorTest {
     }
 
     private fun parseEvents(vararg lines: String) =
-        CodexJsonlParser().parse(
+        InsightJsonlParser().parse(
             temporaryFolder.newFile("session.jsonl").toPath().also {
                 Files.writeString(it, lines.joinToString(separator = "\n", postfix = "\n"))
             }

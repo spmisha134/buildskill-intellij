@@ -52,6 +52,8 @@ class SkillOpsInsightsConfigurable(
 
 private class SkillOpsInsightsSettingsForm {
     private val codexHomePathField = JBTextField()
+    private val claudeHomePathField = JBTextField()
+    private val geminiHomePathField = JBTextField()
     private val maxSessionsToScanField = JBTextField()
     private val autoRefreshEnabledCheckBox = JCheckBox("Auto refresh enabled")
     private val refreshIntervalSecondsField = JBTextField()
@@ -66,6 +68,8 @@ private class SkillOpsInsightsSettingsForm {
     val panel: JComponent = JPanel(GridBagLayout()).apply {
         var row = 0
         addLabeled("Codex home path", codexHomePathField, row++)
+        addLabeled("Claude home path", claudeHomePathField, row++)
+        addLabeled("Gemini home path", geminiHomePathField, row++)
         addLabeled("Maximum sessions to scan", maxSessionsToScanField, row++)
         addFullWidth(autoRefreshEnabledCheckBox, row++)
         addLabeled("Refresh interval seconds", refreshIntervalSecondsField, row++)
@@ -81,6 +85,8 @@ private class SkillOpsInsightsSettingsForm {
 
     fun reset(settings: SkillOpsInsightsSettings) {
         codexHomePathField.text = settings.codexHomePath
+        claudeHomePathField.text = settings.claudeHomePath
+        geminiHomePathField.text = settings.geminiHomePath
         maxSessionsToScanField.text = settings.maxSessionsToScan.toString()
         autoRefreshEnabledCheckBox.isSelected = settings.autoRefreshEnabled
         refreshIntervalSecondsField.text = settings.refreshIntervalSeconds.toString()
@@ -99,6 +105,8 @@ private class SkillOpsInsightsSettingsForm {
     fun settingsOrThrow(): SkillOpsInsightsSettings =
         SkillOpsInsightsSettings(
             codexHomePath = codexHomePathField.text.trim(),
+            claudeHomePath = claudeHomePathField.text.trim(),
+            geminiHomePath = geminiHomePathField.text.trim(),
             maxSessionsToScan = maxSessionsToScanField.requiredInt("Maximum sessions to scan"),
             autoRefreshEnabled = autoRefreshEnabledCheckBox.isSelected,
             refreshIntervalSeconds = refreshIntervalSecondsField.requiredInt("Refresh interval seconds"),

@@ -1,4 +1,4 @@
-package com.spmisha134.skillops.insights.session
+package com.spmisha134.skillops.insights.codex
 
 import java.nio.file.Path
 

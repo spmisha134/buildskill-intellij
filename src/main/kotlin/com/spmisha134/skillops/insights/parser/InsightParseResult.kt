@@ -2,8 +2,8 @@ package com.spmisha134.skillops.insights.parser
 
 import java.nio.file.Path
 
-data class CodexParseResult(
+data class InsightParseResult(
     val filePath: Path,
-    val events: List<CodexRawEvent>,
+    val events: List<RawInsightEvent>,
     val warnings: List<String>,
 )

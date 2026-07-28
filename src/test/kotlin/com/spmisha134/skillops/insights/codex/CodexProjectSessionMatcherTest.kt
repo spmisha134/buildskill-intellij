@@ -1,13 +1,13 @@
-package com.spmisha134.skillops.insights.run
+package com.spmisha134.skillops.insights.codex
 
-import com.spmisha134.skillops.insights.parser.CodexJsonlParser
+import com.spmisha134.skillops.insights.parser.InsightJsonlParser
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.nio.file.Files
 
-class ProjectSessionMatcherTest {
+class CodexProjectSessionMatcherTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
@@ -17,8 +17,8 @@ class ProjectSessionMatcherTest {
             """{"type":"session_meta","payload":{"cwd":"/work/repository"}}""",
         )
 
-        assertEquals(true, ProjectSessionMatcher().belongsToProject(events, java.nio.file.Path.of("/work/repository")))
-        assertEquals(false, ProjectSessionMatcher().belongsToProject(events, java.nio.file.Path.of("/work/other")))
+        assertEquals(true, CodexProjectSessionMatcher().belongsToProject(events, java.nio.file.Path.of("/work/repository")))
+        assertEquals(false, CodexProjectSessionMatcher().belongsToProject(events, java.nio.file.Path.of("/work/other")))
     }
 
     @Test
@@ -27,18 +27,18 @@ class ProjectSessionMatcherTest {
             """{"type":"turn_context","payload":{"workspace_roots":["/work/repository"]}}""",
         )
 
-        assertEquals(true, ProjectSessionMatcher().belongsToProject(events, java.nio.file.Path.of("/work/repository")))
+        assertEquals(true, CodexProjectSessionMatcher().belongsToProject(events, java.nio.file.Path.of("/work/repository")))
     }
 
     @Test
     fun `returns unknown for legacy session without project metadata`() {
         val events = parseEvents("""{"type":"message","payload":{"text":"hello"}}""")
 
-        assertEquals(null, ProjectSessionMatcher().belongsToProject(events, java.nio.file.Path.of("/work/repository")))
+        assertEquals(null, CodexProjectSessionMatcher().belongsToProject(events, java.nio.file.Path.of("/work/repository")))
     }
 
     private fun parseEvents(vararg lines: String) =
-        CodexJsonlParser().parse(
+        InsightJsonlParser().parse(
             temporaryFolder.newFile("session.jsonl").toPath().also {
                 Files.writeString(it, lines.joinToString(separator = "\n", postfix = "\n"))
             }

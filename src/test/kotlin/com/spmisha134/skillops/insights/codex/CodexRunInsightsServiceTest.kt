@@ -1,4 +1,4 @@
-package com.spmisha134.skillops.insights.run
+package com.spmisha134.skillops.insights.codex
 
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettings
 import org.junit.Assert.assertEquals
@@ -9,7 +9,7 @@ import org.junit.rules.TemporaryFolder
 import java.nio.file.Files
 import java.nio.file.attribute.FileTime
 
-class SkillOpsRunInsightsServiceTest {
+class CodexRunInsightsServiceTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
@@ -30,7 +30,7 @@ class SkillOpsRunInsightsServiceTest {
         )
         Files.setLastModifiedTime(sessionFile, FileTime.fromMillis(1_000))
 
-        val report = SkillOpsRunInsightsService().buildReport(
+        val report = CodexRunInsightsService().buildReport(
             projectRoot = projectRoot,
             settings = SkillOpsInsightsSettings(codexHomePath = codexHome.toString()),
         )
@@ -48,7 +48,7 @@ class SkillOpsRunInsightsServiceTest {
         val codexHome = temporaryFolder.newFolder(".codex").toPath()
         Files.createDirectories(codexHome.resolve("sessions"))
 
-        val report = SkillOpsRunInsightsService().buildReport(
+        val report = CodexRunInsightsService().buildReport(
             projectRoot = projectRoot,
             settings = SkillOpsInsightsSettings(codexHomePath = codexHome.toString()),
         )
@@ -77,7 +77,7 @@ class SkillOpsRunInsightsServiceTest {
 """,
         )
 
-        val report = SkillOpsRunInsightsService().buildReport(
+        val report = CodexRunInsightsService().buildReport(
             projectRoot = projectRoot,
             settings = SkillOpsInsightsSettings(codexHomePath = codexHome.toString()),
         )

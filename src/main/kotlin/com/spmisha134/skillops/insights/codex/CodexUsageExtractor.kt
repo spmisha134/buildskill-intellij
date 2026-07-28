@@ -1,14 +1,19 @@
-package com.spmisha134.skillops.insights.usage
+package com.spmisha134.skillops.insights.codex
 
 import com.google.gson.JsonArray
 import com.google.gson.JsonElement
 import com.google.gson.JsonNull
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
-import com.spmisha134.skillops.insights.parser.CodexRawEvent
+import com.spmisha134.skillops.insights.parser.RawInsightEvent
+import com.spmisha134.skillops.insights.parser.doubleAt
+import com.spmisha134.skillops.insights.parser.longAt
+import com.spmisha134.skillops.insights.parser.objectAt
+import com.spmisha134.skillops.insights.parser.stringAt
+import com.spmisha134.skillops.insights.usage.TokenUsage
 
-class TokenUsageExtractor {
-    fun extract(events: List<CodexRawEvent>): TokenUsage? {
+class CodexUsageExtractor {
+    fun extract(events: List<RawInsightEvent>): TokenUsage? {
         val event = events.asReversed().firstOrNull(::isTokenUsageEvent) ?: return null
         val payload = event.payload ?: return null
         val candidates = tokenUsageCandidates(payload)
@@ -27,10 +32,12 @@ class TokenUsageExtractor {
             rateLimitUsedPercent = candidates.findDouble(RATE_LIMIT_USED_PERCENT_KEYS),
             rateLimitResetAt = candidates.findString(RATE_LIMIT_RESET_AT_KEYS),
             rawEvidence = event.rawEvidence(payload),
+            cacheCreationInputTokens = candidates.findLong(CACHE_CREATION_INPUT_TOKEN_KEYS),
+            toolTokens = null,
         )
     }
 
-    private fun isTokenUsageEvent(event: CodexRawEvent): Boolean {
+    private fun isTokenUsageEvent(event: RawInsightEvent): Boolean {
         val payload = event.payload ?: return false
         return event.type == TOKEN_COUNT_EVENT_TYPE ||
             payload.objectAt("payload")?.stringAt("type") == TOKEN_COUNT_EVENT_TYPE ||
@@ -63,11 +70,6 @@ class TokenUsageExtractor {
     private fun JsonObject.containsAny(keys: Set<String>): Boolean =
         keys.any(::has)
 
-    private fun JsonObject.objectAt(key: String): JsonObject? {
-        val element = get(key) ?: return null
-        return if (element.isJsonObject) element.asJsonObject else null
-    }
-
     private fun List<JsonObject>.findLong(keys: List<String>): Long? =
         firstNotNullOfOrNull { candidate -> keys.firstNotNullOfOrNull { key -> candidate.longAt(key) } }
 
@@ -77,53 +79,7 @@ class TokenUsageExtractor {
     private fun List<JsonObject>.findString(keys: List<String>): String? =
         firstNotNullOfOrNull { candidate -> keys.firstNotNullOfOrNull { key -> candidate.stringAt(key) } }
 
-    private fun JsonObject.longAt(key: String): Long? {
-        val element = get(key) ?: return null
-        return element.longValue()
-    }
-
-    private fun JsonObject.doubleAt(key: String): Double? {
-        val element = get(key) ?: return null
-        return element.doubleValue()
-    }
-
-    private fun JsonObject.stringAt(key: String): String? {
-        val element = get(key) ?: return null
-        return element.stringValue()
-    }
-
-    private fun JsonElement.longValue(): Long? {
-        if (!isJsonPrimitive) {
-            return null
-        }
-        val primitive = asJsonPrimitive
-        return when {
-            primitive.isNumber -> runCatching { primitive.asLong }.getOrNull()
-            primitive.isString -> primitive.asString.toLongOrNull()
-            else -> null
-        }
-    }
-
-    private fun JsonElement.doubleValue(): Double? {
-        if (!isJsonPrimitive) {
-            return null
-        }
-        val primitive = asJsonPrimitive
-        return when {
-            primitive.isNumber -> runCatching { primitive.asDouble }.getOrNull()
-            primitive.isString -> primitive.asString.toDoubleOrNull()
-            else -> null
-        }
-    }
-
-    private fun JsonElement.stringValue(): String? =
-        if (isJsonPrimitive && asJsonPrimitive.isString) {
-            asString
-        } else {
-            null
-        }
-
-    private fun CodexRawEvent.rawEvidence(payload: JsonObject): Map<String, Any?> =
+    private fun RawInsightEvent.rawEvidence(payload: JsonObject): Map<String, Any?> =
         mapOf(
             "lineNumber" to lineNumber,
             "timestamp" to timestamp,
@@ -193,6 +149,11 @@ class TokenUsageExtractor {
             "reasoningOutputTokens",
             "reasoning_tokens",
             "reasoningTokens",
+        )
+
+        private val CACHE_CREATION_INPUT_TOKEN_KEYS = listOf(
+            "cache_creation_input_tokens",
+            "cacheCreationInputTokens",
         )
 
         private val TOTAL_TOKEN_KEYS = listOf(

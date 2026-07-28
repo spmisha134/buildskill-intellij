@@ -1,6 +1,5 @@
 package com.spmisha134.skillops.insights.parser
 
-import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
@@ -9,9 +8,9 @@ import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 
-class CodexJsonlParser {
-    fun parse(path: Path): CodexParseResult {
-        val events = mutableListOf<CodexRawEvent>()
+class InsightJsonlParser {
+    fun parse(path: Path): InsightParseResult {
+        val events = mutableListOf<RawInsightEvent>()
         val warnings = mutableListOf<String>()
 
         try {
@@ -26,7 +25,7 @@ class CodexJsonlParser {
             warnings += "Permission denied reading JSONL file $path: ${exception.message ?: exception.javaClass.simpleName}"
         }
 
-        return CodexParseResult(
+        return InsightParseResult(
             filePath = path.toAbsolutePath().normalize(),
             events = events,
             warnings = warnings,
@@ -37,7 +36,7 @@ class CodexJsonlParser {
         lineNumber: Int,
         rawText: String,
         warnings: MutableList<String>,
-    ): CodexRawEvent? {
+    ): RawInsightEvent? {
         if (rawText.isBlank()) {
             return null
         }
@@ -47,7 +46,7 @@ class CodexJsonlParser {
         } catch (exception: JsonSyntaxException) {
             val message = "Line $lineNumber: malformed JSON (${exception.message ?: exception.javaClass.simpleName})"
             warnings += message
-            return CodexRawEvent(
+            return RawInsightEvent(
                 lineNumber = lineNumber,
                 timestamp = null,
                 type = null,
@@ -60,7 +59,7 @@ class CodexJsonlParser {
         if (!parsed.isJsonObject) {
             val message = "Line $lineNumber: JSONL event is not an object"
             warnings += message
-            return CodexRawEvent(
+            return RawInsightEvent(
                 lineNumber = lineNumber,
                 timestamp = null,
                 type = null,
@@ -71,7 +70,7 @@ class CodexJsonlParser {
         }
 
         val payload = parsed.asJsonObject
-        return CodexRawEvent(
+        return RawInsightEvent(
             lineNumber = lineNumber,
             timestamp = payload.stringAt("timestamp"),
             type = payload.eventType(),
@@ -87,21 +86,4 @@ class CodexJsonlParser {
             ?: objectAt("event")?.stringAt("type")
             ?: objectAt("message")?.stringAt("type")
             ?: stringAt("message")
-
-    private fun JsonObject.objectAt(key: String): JsonObject? {
-        val element = get(key) ?: return null
-        return if (element.isJsonObject) element.asJsonObject else null
-    }
-
-    private fun JsonObject.stringAt(key: String): String? {
-        val element = get(key) ?: return null
-        return element.stringValue()
-    }
-
-    private fun JsonElement.stringValue(): String? =
-        if (isJsonPrimitive && asJsonPrimitive.isString) {
-            asString
-        } else {
-            null
-        }
 }

@@ -112,6 +112,17 @@ src/main/kotlin/com/spmisha134/skillops/
       SafeFolderNameRule.kt
       OpenAiYamlRule.kt
 
+  insights/
+    codex/                 # Codex session scanning, matching, usage, and efficiency
+    claude/                # Claude session scanning, matching, and usage
+    gemini/                # Gemini session scanning, matching, and usage
+    parser/                # Provider-neutral JSONL event parsing
+    run/                   # Shared report models and skill catalog
+    usage/                 # Shared token-usage model
+    presentation/          # Shared report formatting
+    settings/              # Local insight settings
+    ui/                    # Shared insights dialog
+
 src/main/resources/
   META-INF/plugin.xml
   templates/
@@ -189,6 +200,13 @@ Validator must not mutate files.
 ### 5.6 `presentation`
 
 Transforms generation and validation results into IDE messages.
+
+### 5.7 `insights`
+
+Reads local agent session files and produces a shared run-insights report without
+network calls. Provider-specific behavior belongs in `codex/`, `claude/`, or
+`gemini/`. The `parser/`, `run/`, and `usage/` packages contain only neutral
+infrastructure and models shared across providers.
 
 ## 6. Domain model
 

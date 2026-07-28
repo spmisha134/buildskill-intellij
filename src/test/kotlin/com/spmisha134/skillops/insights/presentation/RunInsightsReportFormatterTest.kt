@@ -137,6 +137,25 @@ class RunInsightsReportFormatterTest {
     }
 
     @Test
+    fun `uses provider name in improvement advice`() {
+        val insight = SkillRunInsight(
+            sessionPath = Path.of("/tmp/session.jsonl"),
+            sessionFileName = "session.jsonl",
+            lastModifiedMs = 1_000,
+            sizeBytes = 60_506,
+            matchedSkillName = null,
+            tokenUsage = null,
+            efficiencySummary = EfficiencySummary(null, null, null, 0, emptyList()),
+            warnings = listOf("Session log is large (60506 bytes)."),
+        )
+
+        val text = RunInsightsReportFormatter().format(insight, platformName = "Claude")
+
+        assertTrue(text.contains("How to improve: Start a new Claude session"))
+        assertTrue(!text.contains("Codex session"))
+    }
+
+    @Test
     fun `formats invocation command and run history label`() {
         val insight = SkillRunInsight(
             sessionPath = Path.of("/tmp/session.jsonl"),

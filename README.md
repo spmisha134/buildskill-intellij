@@ -5,7 +5,7 @@ SkillOps Plugin
 [![JetBrains Marketplace](https://img.shields.io/jetbrains/plugin/v/32994-skillops.svg?label=JetBrains%20Marketplace)](https://plugins.jetbrains.com/plugin/32994-skillops)
 
 SkillOps is an IntelliJ IDEA plugin that creates repository-scoped skills for Codex, Claude Code, and Gemini CLI.
-It generates platform-specific skill directories, keeps `SKILL.md` focused, and writes supporting references, scripts, and assets. Codex runs can also be reviewed with local run insights.
+It generates platform-specific skill directories, keeps `SKILL.md` focused, and writes supporting references, scripts, and assets. Codex, Claude, and Gemini runs can also be reviewed with local run insights.
 
 SkillOps works locally and does not upload project files, prompts, session logs, credentials, or analytics.
 
@@ -81,11 +81,33 @@ Tools
 → Show Run Insights
 ```
 
+Claude Code has the same action under:
+
+```text
+Tools
+→ SkillOps
+→ Claude
+→ Show Run Insights
+```
+
+Gemini CLI run insights are available under:
+
+```text
+Tools
+→ SkillOps
+→ Gemini
+→ Show Run Insights
+```
+
 Open the IntelliJ **Tools** menu and follow the nested SkillOps and Codex menus:
 
 ![Open Codex Run Insights from the IntelliJ Tools menu](docs/images/skillops-tools-menu.png)
 
 Run insights scan recent Codex JSONL sessions from the configured Codex home and show token totals, input/output split, cached-token percentage, reasoning-token percentage, repository/search activity, rate-limit status, and session-size warnings. Skill runs are grouped by skill name; ordinary project sessions remain available under `No skill`, with separate timestamped history entries.
+
+Claude run insights scan `~/.claude/projects` (or the configured Claude home), aggregate distinct assistant-call usage, merge subagent transcripts into their parent session, and show input, output, cache-read, cache-creation, tool, and search metrics. Reasoning-token and rate-limit fields are omitted because normal Claude transcripts do not expose them.
+
+Gemini run insights scan `~/.gemini/tmp/<project>/chats`, use `.project_root` for exact repository matching, and show recorded total, input, output, cached, thought, and tool tokens together with structured tool/search activity. Gemini's `activate_skill` tool provides explicit skill attribution when present.
 
 Questions and Feedback?
 -----------------------
@@ -146,7 +168,9 @@ Then verify:
 ```text
 Tools → SkillOps → Codex → Create Skill
 Tools → SkillOps → Claude → Create Skill
+Tools → SkillOps → Claude → Show Run Insights
 Tools → SkillOps → Gemini → Create Skill
+Tools → SkillOps → Gemini → Show Run Insights
 Tools → SkillOps → Codex → Show Run Insights
 ```
 

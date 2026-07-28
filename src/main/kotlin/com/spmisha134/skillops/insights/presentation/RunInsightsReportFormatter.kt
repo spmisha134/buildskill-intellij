@@ -11,11 +11,11 @@ class RunInsightsReportFormatter {
     fun format(report: SkillOpsRunInsightsReport): String {
         val selectedInsight = report.latestInsight
         if (selectedInsight != null) {
-            return format(selectedInsight)
+            return format(selectedInsight, report.platformName)
         }
 
         val lines = mutableListOf<String>()
-        lines += "SkillOps Run Insights"
+        lines += "SkillOps ${report.platformName} Run Insights"
         lines += ""
 
         if (report.warnings.isNotEmpty()) {
@@ -24,11 +24,11 @@ class RunInsightsReportFormatter {
             lines += ""
         }
 
-        lines += "No Codex sessions were found for this project."
+        lines += "No ${report.platformName} sessions were found for this project."
         return lines.joinToString("\n")
     }
 
-    fun format(insight: SkillRunInsight): String {
+    fun format(insight: SkillRunInsight, platformName: String = "Codex"): String {
         val lines = mutableListOf<String>()
         lines += "Skill: ${skillNames(insight).joinToString()}"
         lines += "Updated: ${formatInstant(insight.lastModifiedMs)}"
@@ -45,7 +45,7 @@ class RunInsightsReportFormatter {
             lines += "Notes"
             insight.warnings.forEach { warning ->
                 lines += "- $warning"
-                lines += "  How to improve: ${warning.improvementAdvice()}"
+                lines += "  How to improve: ${warning.improvementAdvice(platformName)}"
             }
         }
 
@@ -70,6 +70,7 @@ class RunInsightsReportFormatter {
             efficiencySummary.cachedInputPercent?.let { "- Cached input: ${formatPercent(it)}" },
             efficiencySummary.reasoningOutputPercent?.let { "- Reasoning output: ${formatPercent(it)}" },
             "- Searches: ${efficiencySummary.searchCount}",
+            "- Tool calls: ${efficiencySummary.toolCallCount}",
         )
 
     private fun TokenUsage?.formatTokenLines(): List<String> {
@@ -82,22 +83,24 @@ class RunInsightsReportFormatter {
             inputTokens?.let { "- Input: ${formatLong(it)}" },
             outputTokens?.let { "- Output: ${formatLong(it)}" },
             cachedInputTokens?.let { "- Cached: ${formatLong(it)}" },
+            cacheCreationInputTokens?.let { "- Cache creation: ${formatLong(it)}" },
+            toolTokens?.let { "- Tool: ${formatLong(it)}" },
             reasoningOutputTokens?.let { "- Reasoning: ${formatLong(it)}" },
             rateLimitUsedPercent?.let { "- Rate limit: ${formatPercent(it)}" },
         )
             .ifEmpty { listOf("- Token event found, but totals were unavailable") }
     }
 
-    private fun String.improvementAdvice(): String = when {
+    private fun String.improvementAdvice(platformName: String): String = when {
         startsWith("Session log is very large") || startsWith("Session log is large") ->
-            "Start a new Codex session for a separate task and avoid returning unnecessarily large command output."
+            "Start a new $platformName session for a separate task and avoid returning unnecessarily large command output."
         startsWith("High repository/search activity") ->
-            "Narrow the request and point Codex to the relevant files or package when they are known."
+            "Narrow the request and point $platformName to the relevant files or package when they are known."
         startsWith("Rate limit usage is high") ->
             "Wait for the rate-limit window to reset or reduce repeated large-context requests."
         startsWith("No token usage event") ->
-            "Let the Codex turn finish, then reopen Run Insights so its final token event can be read."
-        else -> "Review the session scope and run a smaller, focused Codex task."
+            "Let the assistant turn finish, then reopen Run Insights so its token usage can be read."
+        else -> "Review the session scope and run a smaller, focused $platformName task."
     }
 
     private fun formatLong(value: Long): String =

@@ -41,7 +41,7 @@ class RunInsightsDialog(
     }
 
     init {
-        title = "SkillOps Run Insights"
+        title = "SkillOps ${report.platformName} Run Insights"
         refreshRuns()
         init()
     }
@@ -72,7 +72,7 @@ class RunInsightsDialog(
         textArea.text = if (selectedInsight == null) {
             formatter.format(report)
         } else {
-            formatter.format(selectedInsight)
+            formatter.format(selectedInsight, report.platformName)
         }
         textArea.caretPosition = 0
     }

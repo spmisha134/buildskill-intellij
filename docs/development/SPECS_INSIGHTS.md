@@ -35,7 +35,9 @@ The plugin can generate `.agents/skills/<skill-name>/`, render `SKILL.md`, rende
 | OpenAI agent metadata | Done | `agents/openai.yaml` is rendered from a template with display name, short description, and default prompt. | `OpenAiYamlRendererTest`; `SkillValidatorTest` covers missing or incomplete metadata. |
 | Validation orchestration | Done | `SkillValidator` runs structure, content, reference, safe-name, and OpenAI YAML rules. | `SkillValidatorTest` plus rule-specific tests for front matter and required fields. |
 | Validate skill workflow | Done | `ValidateSkillAction` validates either a selected skill folder or all child skill folders under `.agents/skills/`. Directory detection lives in pure `SkillPathDetector`. | `SkillPathDetectorTest` covers selected skill, skills root, project root, and unrelated folder cases; project-view menu behavior still needs manual IDE validation. |
-| Run insights workflow | Done | `Show SkillOps Run Insights` scans recent Codex JSONL sessions, matches generated SkillOps skill references, extracts token usage, calculates efficiency metrics, and shows a scrollable IDE report. | `SkillOpsRunInsightsServiceTest`, `SkillUsageMatcherTest`, `EfficiencySummaryCalculatorTest`, `RunInsightsReportFormatterTest`, `./gradlew check`, `./gradlew buildPlugin`, and `./gradlew verifyPlugin`. |
+| Run insights workflow | Done | `Show SkillOps Run Insights` scans recent Codex JSONL sessions, matches generated SkillOps skill references, extracts token usage, calculates efficiency metrics, and shows a scrollable IDE report. Codex-specific implementation is isolated under `insights/codex`; neutral JSONL parsing and report models remain shared. | `CodexRunInsightsServiceTest`, `CodexSkillUsageMatcherTest`, `CodexEfficiencySummaryCalculatorTest`, `RunInsightsReportFormatterTest`, `./gradlew check`, `./gradlew buildPlugin`, and `./gradlew verifyPlugin`. |
+| Claude run insights | Done | `Tools → SkillOps → Claude → Show Run Insights` scans local Claude transcripts, filters by project `cwd`, merges subagents, deduplicates assistant calls, matches `attributionSkill`, and reports input/output/cache/tool/search metrics without external dependencies. | `ClaudeSessionFileScannerTest`, `ClaudeUsageExtractorTest`, and `ClaudeRunInsightsServiceTest`. |
+| Gemini run insights | Done | `Tools → SkillOps → Gemini → Show Run Insights` maps cached sessions through `.project_root`, aggregates Gemini's recorded token categories, matches `activate_skill`, and reports tool/search metrics without external dependencies. | `GeminiSessionFileScannerTest`, `GeminiUsageExtractorTest`, and `GeminiRunInsightsServiceTest`. |
 | User feedback | Done | Creation and validation paths show success, warning, or error dialogs with actionable messages. | Code reviewed in presenters and exception handler; manual UI check recommended for exact IDE wording. |
 | Local-first deterministic behavior | Done | Generation and validation use local templates and deterministic Kotlin logic; no runtime network or AI calls. | Dependency/code review; no OpenAI API or remote documentation calls are present. |
 | Documentation branding consistency | Done | User-facing docs, project instructions, changelog, and foundation spec use `SkillOps` as the display name. | `rg -n "SkillOps Intelli[j]" .` returns no matches. |
@@ -54,6 +56,7 @@ The plugin can generate `.agents/skills/<skill-name>/`, render `SKILL.md`, rende
 | 2026-07-04 | Use `SkillOps` as the plugin display name. | JetBrains Plugin Verifier rejects plugin names that include `IntelliJ`. |
 | 2026-07-04 | Keep specs insights in `docs/development/SPECS_INSIGHTS.md`. | Slice progress and implementation results are development state, separate from product requirements and architecture docs. |
 | 2026-07-04 | Keep `.agents/skills/` reserved for generated skills and fixtures. | Progress tracking should not be mixed with product output directories. |
+| 2026-07-27 | Isolate Codex insights in `insights/codex`. | Each provider owns its session format logic; only neutral parsing, report models, settings, and presentation are shared. |
 
 ## Open Questions
 
@@ -71,6 +74,11 @@ The plugin can generate `.agents/skills/<skill-name>/`, render `SKILL.md`, rende
 | 2026-07-11 | `./gradlew check` | Passed | Full check after run-insights implementation. |
 | 2026-07-11 | `./gradlew buildPlugin` | Passed | Plugin ZIP builds with `Show SkillOps Run Insights`. |
 | 2026-07-11 | `./gradlew verifyPlugin` | Passed | Plugin Verifier marked `com.spmisha134.skillops:0.1.0` compatible against all configured IDE builds after run-insights implementation. |
+| 2026-07-27 | `./gradlew check buildPlugin` | Passed | Full test and packaging check after adding dependency-free local Claude run insights. |
+| 2026-07-27 | `./gradlew check buildPlugin` | Passed | Full regression and packaging check after adding local Gemini run insights. |
+| 2026-07-27 | `./gradlew verifyPlugin` | Passed | Gemini-enabled package is compatible with all four configured IntelliJ builds. |
+| 2026-07-27 | `./gradlew --no-configuration-cache check buildPlugin` | Passed | Full regression and packaging check after isolating Codex insights in its provider package. |
+| 2026-07-27 | `./gradlew --no-configuration-cache verifyPlugin` | Passed | Refactored package remains compatible with all four configured IntelliJ builds. |
 
 ## Manual Validation Checklist
 
@@ -85,4 +93,6 @@ The plugin can generate `.agents/skills/<skill-name>/`, render `SKILL.md`, rende
 - [ ] Confirm IDE message titles use `SkillOps`.
 - [ ] Run a Codex task that references a generated SkillOps skill.
 - [ ] Confirm `Tools → SkillOps → Show Run Insights` opens a report.
+- [ ] Confirm `Tools → SkillOps → Claude → Show Run Insights` opens a report from a real local Claude session.
+- [ ] Confirm `Tools → SkillOps → Gemini → Show Run Insights` opens a report from a real local Gemini session.
 - [ ] Confirm the report shows token usage and detected skill for the latest session.

@@ -1,21 +1,23 @@
-package com.spmisha134.skillops.insights.run
+package com.spmisha134.skillops.insights.codex
 
-import com.spmisha134.skillops.insights.parser.CodexJsonlParser
-import com.spmisha134.skillops.insights.session.CodexSessionFileScanner
+import com.spmisha134.skillops.insights.parser.InsightJsonlParser
+import com.spmisha134.skillops.insights.run.RunInsightsService
+import com.spmisha134.skillops.insights.run.SkillCatalog
+import com.spmisha134.skillops.insights.run.SkillOpsRunInsightsReport
+import com.spmisha134.skillops.insights.run.SkillRunInsight
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettings
-import com.spmisha134.skillops.insights.usage.TokenUsageExtractor
 import java.nio.file.Path
 
-class SkillOpsRunInsightsService(
+class CodexRunInsightsService(
     private val sessionFileScanner: CodexSessionFileScanner = CodexSessionFileScanner(),
-    private val parser: CodexJsonlParser = CodexJsonlParser(),
-    private val tokenUsageExtractor: TokenUsageExtractor = TokenUsageExtractor(),
+    private val parser: InsightJsonlParser = InsightJsonlParser(),
+    private val tokenUsageExtractor: CodexUsageExtractor = CodexUsageExtractor(),
     private val skillCatalog: SkillCatalog = SkillCatalog(),
-    private val skillUsageMatcher: SkillUsageMatcher = SkillUsageMatcher(),
-    private val projectSessionMatcher: ProjectSessionMatcher = ProjectSessionMatcher(),
-    private val efficiencySummaryCalculator: EfficiencySummaryCalculator = EfficiencySummaryCalculator(),
-) {
-    fun buildReport(
+    private val skillUsageMatcher: CodexSkillUsageMatcher = CodexSkillUsageMatcher(),
+    private val projectSessionMatcher: CodexProjectSessionMatcher = CodexProjectSessionMatcher(),
+    private val efficiencySummaryCalculator: CodexEfficiencySummaryCalculator = CodexEfficiencySummaryCalculator(),
+) : RunInsightsService {
+    override fun buildReport(
         projectRoot: Path,
         settings: SkillOpsInsightsSettings,
     ): SkillOpsRunInsightsReport {

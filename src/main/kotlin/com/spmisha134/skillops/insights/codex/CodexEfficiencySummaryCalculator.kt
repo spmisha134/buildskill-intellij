@@ -1,17 +1,19 @@
-package com.spmisha134.skillops.insights.run
+package com.spmisha134.skillops.insights.codex
 
-import com.spmisha134.skillops.insights.parser.CodexRawEvent
+import com.spmisha134.skillops.insights.parser.RawInsightEvent
+import com.spmisha134.skillops.insights.run.EfficiencySummary
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettings
 import com.spmisha134.skillops.insights.usage.TokenUsage
 
-class EfficiencySummaryCalculator {
+class CodexEfficiencySummaryCalculator {
     fun calculate(
-        events: List<CodexRawEvent>,
+        events: List<RawInsightEvent>,
         tokenUsage: TokenUsage?,
         sizeBytes: Long,
         settings: SkillOpsInsightsSettings,
     ): EfficiencySummary {
         val searchCount = events.count(::isSearchEvent)
+        val toolCallCount = events.sumOf(::toolCallCount)
         val warnings = mutableListOf<String>()
 
         if (tokenUsage == null) {
@@ -37,10 +39,11 @@ class EfficiencySummaryCalculator {
             reasoningOutputPercent = percent(tokenUsage?.reasoningOutputTokens, tokenUsage?.outputTokens),
             searchCount = searchCount,
             warnings = warnings,
+            toolCallCount = toolCallCount,
         )
     }
 
-    private fun isSearchEvent(event: CodexRawEvent): Boolean {
+    private fun isSearchEvent(event: RawInsightEvent): Boolean {
         val text = event.rawText.lowercase()
         return text.contains("\"search_query\"") ||
             text.contains("\"find\"") ||
@@ -49,6 +52,9 @@ class EfficiencySummaryCalculator {
             text.contains(" rg ") ||
             text.contains(" grep ")
     }
+
+    private fun toolCallCount(event: RawInsightEvent): Int =
+        TOOL_USE_PATTERN.findAll(event.rawText).count()
 
     private fun ratio(numerator: Long?, denominator: Long?): Double? =
         if (numerator != null && denominator != null && denominator > 0) {
@@ -65,5 +71,6 @@ class EfficiencySummaryCalculator {
 
     companion object {
         private const val RATE_LIMIT_WARNING_PERCENT = 80.0
+        private val TOOL_USE_PATTERN = Regex("\"type\"\\s*:\\s*\"tool_use\"")
     }
 }

@@ -314,12 +314,14 @@ The plugin must add an IntelliJ Tools-menu submenu:
 ```text
 SkillOps
 ├── Codex
-│   └── Create Skill
+│   ├── Create Skill
+│   └── Show Run Insights
 ├── Claude
-│   └── Create Skill
+│   ├── Create Skill
+│   └── Show Run Insights
 ├── Gemini
-│   └── Create Skill
-└── Show Run Insights
+│   ├── Create Skill
+│   └── Show Run Insights
 ```
 
 The action must scan recent Codex JSONL session files from the configured Codex home and show a local report with:
@@ -335,6 +337,30 @@ The action must scan recent Codex JSONL session files from the configured Codex 
 - warnings for missing token usage, large session logs, high search activity, and high rate-limit usage
 
 The action must be local-first and must not call OpenAI APIs or remote services.
+
+The Claude action must scan local Claude Code transcripts from the configured Claude home. It must:
+
+- associate sessions with the open project using transcript `cwd`
+- deduplicate assistant calls by `message.id`
+- aggregate input, output, cache-read, and cache-creation tokens
+- merge `subagents/agent-*.jsonl` activity into the parent session
+- prefer explicit `attributionSkill` metadata for skill matching
+- show tool-call and repository/search activity
+- omit reasoning-token and rate-limit metrics when the transcript does not provide them
+
+Claude insights must not depend on Claude Lens, Node.js, a database, a web server, or a remote service.
+
+The Gemini action must scan local Gemini CLI sessions from the configured Gemini home. It must:
+
+- resolve repository ownership through each cached project's `.project_root`
+- scan `tmp/<project>/chats/session-*.jsonl`
+- deduplicate Gemini responses by record `id`
+- aggregate recorded total, input, output, cached, thought, and tool tokens
+- count structured tool calls and repository/search tools
+- prefer structured `activate_skill` calls for skill attribution
+- fall back to `.gemini/skills/<name>` references when explicit activation is unavailable
+
+Gemini insights must not call Gemini APIs or require a database, web server, or external runtime.
 
 ## 8. Non-functional requirements
 

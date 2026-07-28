@@ -6,17 +6,21 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
-import com.intellij.openapi.project.Project
+import com.spmisha134.skillops.insights.claude.ClaudeRunInsightsService
+import com.spmisha134.skillops.insights.codex.CodexRunInsightsService
+import com.spmisha134.skillops.insights.gemini.GeminiRunInsightsService
 import com.spmisha134.skillops.insights.presentation.RunInsightsReportFormatter
-import com.spmisha134.skillops.insights.run.SkillOpsRunInsightsService
+import com.spmisha134.skillops.insights.run.RunInsightsService
 import com.spmisha134.skillops.insights.run.SkillOpsRunInsightsReport
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettingsState
 import com.spmisha134.skillops.insights.ui.RunInsightsDialog
 import com.spmisha134.skillops.presentation.NotificationPresenter
 import java.nio.file.Path
 
-class ShowRunInsightsAction : AnAction() {
-    private val insightsService = SkillOpsRunInsightsService()
+open class ShowRunInsightsAction(
+    private val service: RunInsightsService = CodexRunInsightsService(),
+    private val platformLabel: String = "Codex",
+) : AnAction() {
     private val formatter = RunInsightsReportFormatter()
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
@@ -32,16 +36,13 @@ class ShowRunInsightsAction : AnAction() {
         val settings = SkillOpsInsightsSettingsState.getInstance().settings.copy()
 
         ProgressManager.getInstance().run(
-            object : Task.Backgroundable(project, "Loading Codex run insights", false) {
+            object : Task.Modal(project, "Loading $platformLabel sessions", false) {
                 private lateinit var report: SkillOpsRunInsightsReport
 
                 override fun run(indicator: ProgressIndicator) {
                     indicator.isIndeterminate = true
-                    indicator.text = "Scanning Codex sessions…"
-                    report = insightsService.buildReport(
-                        projectRoot = projectRoot,
-                        settings = settings,
-                    )
+                    indicator.text = "Scanning local $platformLabel sessions…"
+                    report = service.buildReport(projectRoot, settings)
                 }
 
                 override fun onSuccess() {
@@ -49,16 +50,16 @@ class ShowRunInsightsAction : AnAction() {
                 }
 
                 override fun onThrowable(error: Throwable) {
-                    showLoadError(project, error)
+                    NotificationPresenter.showError(
+                        project,
+                        "Could not show $platformLabel run insights: ${error.message ?: error.javaClass.simpleName}",
+                    )
                 }
             }
         )
     }
-
-    private fun showLoadError(project: Project, error: Throwable) {
-        NotificationPresenter.showError(
-            project,
-            "Could not show SkillOps run insights: ${error.message ?: error.javaClass.simpleName}"
-        )
-    }
 }
+
+class ShowClaudeRunInsightsAction : ShowRunInsightsAction(ClaudeRunInsightsService(), "Claude")
+
+class ShowGeminiRunInsightsAction : ShowRunInsightsAction(GeminiRunInsightsService(), "Gemini")

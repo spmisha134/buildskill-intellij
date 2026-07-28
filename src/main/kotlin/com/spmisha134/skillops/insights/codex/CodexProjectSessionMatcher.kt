@@ -1,13 +1,14 @@
-package com.spmisha134.skillops.insights.run
+package com.spmisha134.skillops.insights.codex
 
-import com.google.gson.JsonElement
-import com.google.gson.JsonObject
-import com.spmisha134.skillops.insights.parser.CodexRawEvent
+import com.spmisha134.skillops.insights.parser.RawInsightEvent
+import com.spmisha134.skillops.insights.parser.objectOrNull
+import com.spmisha134.skillops.insights.parser.stringAt
+import com.spmisha134.skillops.insights.parser.stringOrNull
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 
-class ProjectSessionMatcher {
-    fun belongsToProject(events: List<CodexRawEvent>, projectRoot: Path): Boolean? {
+class CodexProjectSessionMatcher {
+    fun belongsToProject(events: List<RawInsightEvent>, projectRoot: Path): Boolean? {
         val recordedPaths = events.flatMap(::projectPaths)
         if (recordedPaths.isEmpty()) {
             return null
@@ -19,19 +20,19 @@ class ProjectSessionMatcher {
         }
     }
 
-    private fun projectPaths(event: CodexRawEvent): List<String> {
+    private fun projectPaths(event: RawInsightEvent): List<String> {
         val payload = event.payload?.getAsJsonObject("payload") ?: return emptyList()
         return buildList {
-            payload.string("cwd")?.let(::add)
+            payload.stringAt("cwd")?.let(::add)
             payload.getAsJsonArray("workspace_roots")
-                ?.mapNotNull { it.asStringOrNull() }
+                ?.mapNotNull { it.stringOrNull() }
                 ?.let(::addAll)
 
             payload.getAsJsonObject("state")
                 ?.getAsJsonObject("environments")
                 ?.getAsJsonObject("environments")
                 ?.entrySet()
-                ?.mapNotNull { (_, environment) -> environment.asJsonObjectOrNull()?.string("cwd") }
+                ?.mapNotNull { (_, environment) -> environment.objectOrNull()?.stringAt("cwd") }
                 ?.let(::addAll)
         }
     }
@@ -42,13 +43,4 @@ class ProjectSessionMatcher {
         } catch (_: InvalidPathException) {
             null
         }
-
-    private fun JsonObject.string(name: String): String? =
-        get(name)?.asStringOrNull()
-
-    private fun JsonElement.asStringOrNull(): String? =
-        takeIf { isJsonPrimitive && asJsonPrimitive.isString }?.asString
-
-    private fun JsonElement.asJsonObjectOrNull(): JsonObject? =
-        takeIf(JsonElement::isJsonObject)?.asJsonObject
 }

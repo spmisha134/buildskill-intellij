@@ -10,7 +10,7 @@ import org.junit.rules.TemporaryFolder
 import java.nio.file.Files
 import java.nio.file.Path
 
-class CodexJsonlParserTest {
+class InsightJsonlParserTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
@@ -18,7 +18,7 @@ class CodexJsonlParserTest {
     fun `empty file parses successfully`() {
         val file = temporaryFile("empty.jsonl", "")
 
-        val result = CodexJsonlParser().parse(file)
+        val result = InsightJsonlParser().parse(file)
 
         assertEquals(file.toAbsolutePath().normalize(), result.filePath)
         assertTrue(result.events.isEmpty())
@@ -32,7 +32,7 @@ class CodexJsonlParserTest {
             """{"timestamp":"2026-07-04T12:12:00Z","type":"response.completed","payload":{"id":"abc"}}""" + "\n",
         )
 
-        val result = CodexJsonlParser().parse(file)
+        val result = InsightJsonlParser().parse(file)
 
         assertTrue(result.warnings.isEmpty())
         assertEquals(1, result.events.size)
@@ -52,7 +52,7 @@ class CodexJsonlParserTest {
                 """{"type":"after"}""" + "\n",
         )
 
-        val result = CodexJsonlParser().parse(file)
+        val result = InsightJsonlParser().parse(file)
 
         assertEquals(3, result.events.size)
         assertEquals(listOf("ok", null, "after"), result.events.map { it.type })
@@ -69,7 +69,7 @@ class CodexJsonlParserTest {
             """{"custom":"value","nested":{"number":3},"message":{"type":"message.kind","body":"hello"}}""" + "\n",
         )
 
-        val result = CodexJsonlParser().parse(file)
+        val result = InsightJsonlParser().parse(file)
 
         val event = result.events.single()
         assertEquals("message.kind", event.type)
@@ -82,7 +82,7 @@ class CodexJsonlParserTest {
     fun `parser returns warning with line number for non object json line`() {
         val file = temporaryFile("array.jsonl", """["not","an","event"]""" + "\n")
 
-        val result = CodexJsonlParser().parse(file)
+        val result = InsightJsonlParser().parse(file)
 
         assertEquals(1, result.events.size)
         assertEquals(1, result.warnings.size)

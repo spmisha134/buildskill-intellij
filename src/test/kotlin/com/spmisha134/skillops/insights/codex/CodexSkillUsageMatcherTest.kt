@@ -1,6 +1,6 @@
-package com.spmisha134.skillops.insights.run
+package com.spmisha134.skillops.insights.codex
 
-import com.spmisha134.skillops.insights.parser.CodexJsonlParser
+import com.spmisha134.skillops.insights.parser.InsightJsonlParser
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
@@ -8,7 +8,7 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.nio.file.Files
 
-class SkillUsageMatcherTest {
+class CodexSkillUsageMatcherTest {
     @get:Rule
     val temporaryFolder = TemporaryFolder()
 
@@ -18,7 +18,7 @@ class SkillUsageMatcherTest {
             """{"type":"response_item","payload":{"type":"message","role":"user","content":[{"text":"Read .agents/skills/kafka-review/SKILL.md first"}]}}""",
         )
 
-        val match = SkillUsageMatcher().matchSkill(events, listOf("api-helper", "kafka-review"))
+        val match = CodexSkillUsageMatcher().matchSkill(events, listOf("api-helper", "kafka-review"))
 
         assertEquals("kafka-review", match)
     }
@@ -29,7 +29,7 @@ class SkillUsageMatcherTest {
             """{"type":"message","payload":{"text":"ordinary coding task"}}""",
         )
 
-        val match = SkillUsageMatcher().matchSkill(events, listOf("kafka-review"))
+        val match = CodexSkillUsageMatcher().matchSkill(events, listOf("kafka-review"))
 
         assertNull(match)
     }
@@ -41,7 +41,7 @@ class SkillUsageMatcherTest {
             """{"type":"response_item","payload":{"type":"message","role":"user","content":[{"text":"<skill><name>kafka-review</name></skill>"}]}}""",
         )
 
-        val matches = SkillUsageMatcher().matchSkills(events, listOf("api-helper", "kafka-review", "unused"))
+        val matches = CodexSkillUsageMatcher().matchSkills(events, listOf("api-helper", "kafka-review", "unused"))
 
         assertEquals(listOf("api-helper", "kafka-review"), matches)
     }
@@ -52,7 +52,7 @@ class SkillUsageMatcherTest {
             """{"type":"response_item","payload":{"type":"message","role":"user","content":[{"text":"<skill><name>external-helper</name><path>/repo/.agents/skills/external-helper/SKILL.md</path></skill>"}]}}""",
         )
 
-        val matcher = SkillUsageMatcher()
+        val matcher = CodexSkillUsageMatcher()
 
         assertEquals(emptyList<String>(), matcher.matchSkills(events, listOf("repo-skill")))
         assertEquals(listOf("external-helper"), matcher.detectRecordedSkillNames(events))
@@ -66,7 +66,7 @@ class SkillUsageMatcherTest {
             """{"type":"response_item","payload":{"type":"message","role":"user","content":[{"text":"<skill><name>update-deps</name><path>/repo/.agents/skills/update-deps/SKILL.md</path></skill>"}]}}""",
         )
 
-        val matcher = SkillUsageMatcher()
+        val matcher = CodexSkillUsageMatcher()
 
         assertEquals(listOf("update-deps"), matcher.detectRecordedSkillNames(events))
         assertEquals(listOf("update-deps"), matcher.matchSkills(events, listOf("another-dep", "update-deps")))
@@ -79,7 +79,7 @@ class SkillUsageMatcherTest {
             """{"type":"event_msg","payload":{"type":"user_message","message":"Review this project without a skill"}}""",
         )
 
-        assertEquals(emptyList<String>(), SkillUsageMatcher().matchSkills(events, listOf("update-deps")))
+        assertEquals(emptyList<String>(), CodexSkillUsageMatcher().matchSkills(events, listOf("update-deps")))
     }
 
     @Test
@@ -89,7 +89,7 @@ class SkillUsageMatcherTest {
             """{"type":"response_item","payload":{"type":"message","role":"user","content":[{"text":"<skill><name>update-deps</name></skill>"}]}}""",
         )
 
-        assertEquals("${'$'}update-deps run the skill", SkillUsageMatcher().invocationCommand(events))
+        assertEquals("${'$'}update-deps run the skill", CodexSkillUsageMatcher().invocationCommand(events))
     }
 
     @Test
@@ -99,11 +99,11 @@ class SkillUsageMatcherTest {
             """{"type":"event_msg","payload":{"type":"user_message","message":"Then update its tests"}}""",
         )
 
-        assertEquals("Review the Kafka consumer", SkillUsageMatcher().invocationCommand(events))
+        assertEquals("Review the Kafka consumer", CodexSkillUsageMatcher().invocationCommand(events))
     }
 
     private fun parseEvents(vararg lines: String) =
-        CodexJsonlParser().parse(
+        InsightJsonlParser().parse(
             temporaryFolder.newFile("session.jsonl").toPath().also {
                 Files.writeString(it, lines.joinToString(separator = "\n", postfix = "\n"))
             }

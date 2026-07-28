@@ -1,4 +1,4 @@
-package com.spmisha134.skillops.insights.session
+package com.spmisha134.skillops.insights.codex
 
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettings
 import java.io.IOException
