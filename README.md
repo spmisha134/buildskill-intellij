@@ -99,6 +99,19 @@ Tools
 → Show Run Insights
 ```
 
+Copy and convert repository skills between supported platforms:
+
+```text
+Tools
+→ SkillOps
+→ Copy Skills
+→ choose source and target platforms
+→ select skills
+→ Copy
+```
+
+The copy flow preserves supporting files, applies target-specific metadata, validates the converted skill, and offers replace, rename, or skip handling for existing target skills.
+
 Open the IntelliJ **Tools** menu and follow the nested SkillOps and Codex menus:
 
 ![Open Codex Run Insights from the IntelliJ Tools menu](docs/images/skillops-tools-menu.png)

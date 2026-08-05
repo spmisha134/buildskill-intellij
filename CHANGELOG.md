@@ -4,6 +4,23 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-05
+
+### Added
+- Copy and convert repository skills between Codex, Claude Code, and Gemini CLI.
+- Multi-skill selection with target-aware conversion and validation.
+- Visible conversion progress and conflict prompts for replace, rename, or skip decisions.
+
+### Changed
+- Preserve compatible references, scripts, assets, nested files, empty directories, and executable permissions during conversion.
+- Generate Codex `agents/openai.yaml` metadata when targeting Codex and remove it from Claude and Gemini targets.
+
+### Safety
+- Stage and validate converted skills before installation.
+- Back up and restore existing target skills if replacement fails.
+
+## [0.2.0] - 2026-07-28
+
 ### Added
 - Local Claude Code run insights with input, output, cache-read, cache-creation, tool-call, and search metrics.
 - Claude subagent transcript merging, assistant-call deduplication, and explicit skill attribution.

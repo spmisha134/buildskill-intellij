@@ -97,6 +97,13 @@ src/main/kotlin/com/spmisha134/skillops/
     ReferenceTemplateRenderer.kt
     SkillGenerator.kt
 
+  copy/
+    SkillCopyService.kt       # Copy orchestration
+    discovery/                # Repository skill discovery
+    conversion/               # Portable-to-target conversion and SKILL.md parsing
+    io/                       # Safe source reading and staged target writing
+    validation/               # Target-platform validation
+
   validator/
     SkillValidationContext.kt
     SkillValidator.kt
@@ -128,6 +135,7 @@ src/main/resources/
   templates/
 
 src/test/kotlin/com/spmisha134/skillops/
+  copy/
   generator/
   validator/
 ```
@@ -207,6 +215,22 @@ Reads local agent session files and produces a shared run-insights report withou
 network calls. Provider-specific behavior belongs in `codex/`, `claude/`, or
 `gemini/`. The `parser/`, `run/`, and `usage/` packages contain only neutral
 infrastructure and models shared across providers.
+
+### 5.8 `copy`
+
+Deterministic cross-platform skill conversion.
+
+Responsibilities:
+
+- discover repository skills for each supported platform
+- read source skills into provider-neutral models
+- convert target-specific structure and metadata
+- validate staged targets before installation
+- write atomically and restore replaced targets on failure
+
+`SkillCopyService` owns orchestration only. Discovery, conversion, filesystem I/O,
+and validation belong in their respective subpackages. Copy domain models live in
+`model/copy` as one-purpose files and must not depend on IntelliJ APIs.
 
 ## 6. Domain model
 

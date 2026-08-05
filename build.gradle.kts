@@ -27,6 +27,7 @@ intellijPlatform {
             <p>SkillOps removes the repetitive setup from skill authoring and helps you understand how Codex, Claude, and Gemini sessions use context and tokens.</p>
             <ul>
                 <li>Create platform-specific skills with structured <code>SKILL.md</code> content and supporting references.</li>
+                <li>Copy and convert repository skills between Codex, Claude Code, and Gemini CLI.</li>
                 <li>Generate optional scripts and assets, plus Codex interface metadata.</li>
                 <li>Validate Codex skills before committing them.</li>
                 <li>Review local Codex, Claude, and Gemini run history, token usage, cache behavior, efficiency, and sessions without skills.</li>
@@ -35,11 +36,11 @@ intellijPlatform {
         """.trimIndent()
         changeNotes = """
             <ul>
-                <li>Adds local run insights for Claude Code and Gemini CLI alongside Codex.</li>
-                <li>Shows provider-specific token, cache, tool-call, search, and skill-attribution metrics.</li>
-                <li>Merges Claude subagent activity into parent sessions and deduplicates assistant usage.</li>
-                <li>Uses Gemini project mappings for exact repository ownership and structured skill activation.</li>
-                <li>Refactors session analysis into shared provider-neutral infrastructure while preserving Codex insights.</li>
+                <li>Copies and converts repository skills between Codex, Claude Code, and Gemini CLI.</li>
+                <li>Preserves references, scripts, assets, nested files, empty directories, and executable scripts.</li>
+                <li>Generates target-specific metadata and validates each converted skill before installation.</li>
+                <li>Prompts only when a target conflict occurs, with replace, rename, and skip choices.</li>
+                <li>Uses staged writes and replacement rollback to prevent incomplete target skills.</li>
             </ul>
         """.trimIndent()
 

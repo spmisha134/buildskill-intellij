@@ -188,6 +188,9 @@ Before creating a release:
 - [ ] `Tools → SkillOps → Codex → Create Skill` works
 - [ ] `Tools → SkillOps → Claude → Create Skill` works
 - [ ] `Tools → SkillOps → Gemini → Create Skill` works
+- [ ] `Tools → SkillOps → Copy Skills` discovers repository skills
+- [ ] Copy Skills converts a skill between two platforms and preserves supporting files
+- [ ] Copy Skills prompts with replace, rename, and skip only when the target already exists
 - [ ] `Tools → SkillOps → Codex → Show Run Insights` works
 - [ ] `Validate SkillOps` action works
 - [ ] Generated skill is created under `.agents/skills/<skill-name>/`
