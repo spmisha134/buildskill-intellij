@@ -90,7 +90,9 @@ Tools
 → Resume Session
 ```
 
-Search by task, skill, session ID, or working directory, then double-click a session or select **Resume Session**. Run Insights also provides the same resume action for the selected Codex run.
+Search by task, skill, session ID, or working directory, then double-click a session or select **Resume Session**. The dialog shows the matched project, working directory, last activity time, and exact `codex resume` command before opening it in a new terminal tab. Run Insights also provides **Resume Session** and **Copy Session ID** actions for the selected Codex run.
+
+![Search and resume a Codex session](docs/images/resume-sessions.png)
 
 Claude Code has the same action under:
 
@@ -122,6 +124,8 @@ Tools
 ```
 
 The copy flow preserves supporting files, applies target-specific metadata, validates the converted skill, and offers replace, rename, or skip handling for existing target skills.
+
+![Copy skills between Codex, Claude, and Gemini](docs/images/copy-skills.png)
 
 Open the IntelliJ **Tools** menu and follow the nested SkillOps and Codex menus:
 
@@ -196,6 +200,8 @@ Tools → SkillOps → Claude → Show Run Insights
 Tools → SkillOps → Gemini → Create Skill
 Tools → SkillOps → Gemini → Show Run Insights
 Tools → SkillOps → Codex → Show Run Insights
+Tools → SkillOps → Codex → Resume Session
+Tools → SkillOps → Copy Skills
 ```
 
 How to develop in IntelliJ
