@@ -10,6 +10,12 @@ This runbook describes how to build, verify, package, and publish SkillOps for I
 ./gradlew runIde
 ```
 
+This launches the latest development target. Use the oldest supported IDE for compatibility-focused manual testing:
+
+```bash
+./gradlew runIdeOldest
+```
+
 ### Run checks
 
 ```bash
@@ -86,7 +92,9 @@ Before uploading a release candidate:
 3. Restart the IDE when requested.
 4. Open a disposable repository and verify Codex, Claude, and Gemini skill creation.
 5. Run a Codex skill and confirm its run history, invocation command, token usage, and efficiency metrics.
-6. Confirm the IDE log contains no `Plugin 'SkillOps' failed to load` or `Cannot load com.spmisha134.skillops` errors.
+6. Open `Tools → SkillOps → Codex → Resume Session`, verify the explicit user request is shown, and resume it in a new terminal.
+7. Resume a selected session from Codex Run Insights and confirm the dialog closes and the terminal receives focus.
+8. Confirm the IDE log contains no `Plugin 'SkillOps' failed to load` or `Cannot load com.spmisha134.skillops` errors.
 
 Do not use a real project or real session details in Marketplace screenshots. Use a disposable repository and generic skill names.
 
@@ -184,6 +192,7 @@ Before creating a release:
 - [ ] Specs are implemented or explicitly deferred
 - [ ] `./gradlew check` passes
 - [ ] `./gradlew buildPlugin` succeeds
+- [ ] `./gradlew verifyPlugin` passes for every configured IDE
 - [ ] Plugin ZIP installs manually
 - [ ] `Tools → SkillOps → Codex → Create Skill` works
 - [ ] `Tools → SkillOps → Claude → Create Skill` works
@@ -192,6 +201,8 @@ Before creating a release:
 - [ ] Copy Skills converts a skill between two platforms and preserves supporting files
 - [ ] Copy Skills prompts with replace, rename, and skip only when the target already exists
 - [ ] `Tools → SkillOps → Codex → Show Run Insights` works
+- [ ] `Tools → SkillOps → Codex → Resume Session` shows the real user request and resumes the selected session
+- [ ] Run Insights resumes the selected Codex session, closes, and focuses the terminal
 - [ ] `Validate SkillOps` action works
 - [ ] Generated skill is created under `.agents/skills/<skill-name>/`
 - [ ] Claude skill is created under `.claude/skills/<skill-name>/`

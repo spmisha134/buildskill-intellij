@@ -106,6 +106,10 @@ User right-clicks a project or folder
 
 ## 7. Functional requirements
 
+### 7.0 Resume session
+
+The Codex menu must expose a first-class `Resume Session` action. It must discover resumable local Codex sessions belonging to the current project, support search by task, skill, session ID, or working directory, and resume the selected session in a new IntelliJ terminal tab. The session list must prefer the explicit Codex user message over injected project instructions when presenting the task. The same action must be available contextually for the selected Codex Run Insights entry.
+
 ### 7.1 Create skill action
 
 The plugin must add an IntelliJ project-view New-menu action:

@@ -1,6 +1,7 @@
 package com.spmisha134.skillops.insights.run
 
 import com.spmisha134.skillops.insights.usage.TokenUsage
+import com.spmisha134.skillops.sessions.model.SessionResumeTarget
 import java.nio.file.Path
 
 data class SkillRunInsight(
@@ -15,4 +16,5 @@ data class SkillRunInsight(
     val matchedSkillNames: List<String> = listOfNotNull(matchedSkillName),
     val recordedSkillNames: List<String> = matchedSkillNames,
     val invocationCommand: String? = null,
+    val resumeTarget: SessionResumeTarget? = null,
 )

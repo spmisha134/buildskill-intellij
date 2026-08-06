@@ -4,6 +4,22 @@
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-06
+
+### Added
+- First-class `Resume Session` action for searching and continuing project Codex sessions in a new IntelliJ terminal.
+- Contextual session resume and session-ID copy actions in Codex Run Insights.
+- Separate `runIde` and `runIdeOldest` development tasks for current and minimum supported IntelliJ versions.
+
+### Changed
+- Extended IntelliJ IDEA compatibility from build 242 (2024.2) through current releases without an upper build limit.
+- Display the explicit Codex user request in the session picker instead of injected project instructions.
+- Organized session models, discovery, services, terminal integration, UI, and tests into responsibility-based packages.
+
+### Fixed
+- Close Run Insights and focus the terminal after resuming a session.
+- Improve session task readability and show the exact resume command and working directory.
+
 ## [0.3.0] - 2026-08-05
 
 ### Added

@@ -6,6 +6,7 @@ import com.spmisha134.skillops.insights.run.SkillCatalog
 import com.spmisha134.skillops.insights.run.SkillOpsRunInsightsReport
 import com.spmisha134.skillops.insights.run.SkillRunInsight
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettings
+import com.spmisha134.skillops.sessions.discovery.CodexSessionMetadataExtractor
 import java.nio.file.Path
 
 class CodexRunInsightsService(
@@ -16,6 +17,7 @@ class CodexRunInsightsService(
     private val skillUsageMatcher: CodexSkillUsageMatcher = CodexSkillUsageMatcher(),
     private val projectSessionMatcher: CodexProjectSessionMatcher = CodexProjectSessionMatcher(),
     private val efficiencySummaryCalculator: CodexEfficiencySummaryCalculator = CodexEfficiencySummaryCalculator(),
+    private val sessionMetadataExtractor: CodexSessionMetadataExtractor = CodexSessionMetadataExtractor(),
 ) : RunInsightsService {
     override fun buildReport(
         projectRoot: Path,
@@ -51,6 +53,7 @@ class CodexRunInsightsService(
                 sizeBytes = sessionFile.sizeBytes,
                 settings = normalizedSettings,
             )
+            val sessionMetadata = sessionMetadataExtractor.extract(parseResult.events, sessionFile.fileName)
 
             SkillRunInsight(
                 sessionPath = sessionFile.path,
@@ -64,6 +67,7 @@ class CodexRunInsightsService(
                 tokenUsage = tokenUsage,
                 efficiencySummary = efficiencySummary,
                 warnings = parseResult.warnings + efficiencySummary.warnings,
+                resumeTarget = sessionMetadata?.toResumeTarget(),
             )
         }
 

@@ -1,4 +1,4 @@
-# SkillOps - Claude Code Guide
+# SkillOps - Agent Guide
 
 ## Prerequisites
 
@@ -56,6 +56,58 @@ This is a single-module IntelliJ plugin.
 | `docs/architecture/` | Architecture notes |
 | `docs/development/` | Build, release, and publishing runbook |
 
+## Package Structure Rules
+
+Package structure is a required part of every implementation, not cleanup to perform afterward.
+
+Before adding the first source file for a feature:
+
+1. Read `docs/architecture/ARCHITECTURE.md`.
+2. Identify the feature root package and the responsibilities the feature introduces.
+3. Define the intended package tree before implementing classes.
+4. Reuse an existing package only when the new class has the same responsibility as that package.
+
+Do not place an entire multi-responsibility feature into one flat package. Split feature code by responsibility using the established structure:
+
+```text
+<feature>/
+  model/          # Plain Kotlin data classes and enums
+  discovery/      # Filesystem discovery, scanning, parsing, and metadata extraction
+  service/        # Use-case orchestration
+  ui/             # IntelliJ/Swing dialogs, forms, tables, and renderers
+  presentation/   # User-facing formatting and result presentation
+  terminal/       # IntelliJ terminal integration and command construction
+  settings/       # Persistent settings and configuration UI
+```
+
+Create only the subpackages that the feature actually needs. Other responsibility-specific names such as `generator/`, `validator/`, `conversion/`, `io/`, or `rules/` are appropriate when they describe the domain more precisely.
+
+Mandatory boundaries:
+
+- Keep one primary model per file. Do not collect unrelated request, result, metadata, and target models in one Kotlin file.
+- Keep models free of IntelliJ Platform, Swing, filesystem I/O, and presentation dependencies.
+- Services orchestrate use cases; they must not construct dialogs, show notifications, or directly own Swing components.
+- Discovery and parser classes read and interpret data; they must not launch terminals or render UI.
+- UI classes collect input and render state; they must delegate scanning, business decisions, filesystem access, and command execution.
+- IntelliJ-specific behavior belongs in `actions/`, `ui/`, `presentation/`, `terminal/`, or another clearly named integration package.
+- Shared concepts belong in a neutral shared or feature-domain package, not inside one consumer package. For example, a session resume target must not be owned by Run Insights merely because Run Insights displays it.
+- Keep actions thin: resolve project context, invoke a service, and hand results to presentation or UI.
+- Mirror production package structure under `src/test/kotlin/`.
+
+Before considering an implementation complete:
+
+- inspect the resulting feature tree and imports
+- confirm every class is in the package matching its responsibility
+- split any flat package that mixes models, orchestration, parsing, UI, and platform integration
+- update `docs/architecture/ARCHITECTURE.md` when introducing or changing package boundaries
+- run compile and tests after package moves to catch stale imports and instrumentation output
+
+Current examples to follow:
+
+- `copy/` separates discovery, conversion, I/O, and validation.
+- `insights/` separates provider logic, parsing, run models, usage, presentation, settings, and UI.
+- `sessions/` separates models, discovery, services, terminal integration, and UI.
+
 ## Build and Validation
 
 ### Available commands
@@ -98,6 +150,12 @@ To launch an IntelliJ instance with the plugin installed for manual validation:
 ./gradlew runIde
 ```
 
+This launches the latest development target. To launch the oldest supported IDE:
+
+```bash
+./gradlew runIdeOldest
+```
+
 The sandbox is stored under `build/idea-sandbox` by the IntelliJ Platform Gradle Plugin defaults. Running `./gradlew clean` may remove local build and sandbox state.
 
 ## Development Rules
@@ -105,6 +163,8 @@ The sandbox is stored under `build/idea-sandbox` by the IntelliJ Platform Gradle
 - Read `README.md` before making changes.
 - Read `docs/product/PRODUCT_REQUIREMENTS.md` before implementing product behavior.
 - Read `docs/architecture/ARCHITECTURE.md` before changing package structure or core design.
+- Plan and create responsibility-based packages before implementing a new multi-class feature.
+- Treat misplaced classes and mixed-responsibility flat packages as implementation defects.
 - Keep changes small and focused.
 - Keep IntelliJ-specific code out of pure generator and validator logic.
 - Do not introduce AI calls, remote documentation fetching, marketplace publishing automation, or unrelated features unless the relevant spec requires it.

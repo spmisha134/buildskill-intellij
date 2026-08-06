@@ -24,6 +24,7 @@ class CodexRunInsightsServiceTest {
         Files.writeString(
             sessionFile,
             """
+            {"type":"session_meta","payload":{"id":"019cb301-f5cf-76c0-a1db-8ef3580d7800","cwd":"$projectRoot"}}
             {"type":"response_item","payload":{"type":"message","role":"user","content":[{"text":"Using .agents/skills/kafka-review/SKILL.md"}]}}
             {"type":"token_count","payload":{"usage":{"input_tokens":100,"output_tokens":25,"cached_input_tokens":50}}}
             """.trimIndent() + "\n",
@@ -40,6 +41,8 @@ class CodexRunInsightsServiceTest {
         assertEquals("kafka-review", report.latestInsight?.matchedSkillName)
         assertEquals(125L, report.latestInsight?.tokenUsage?.totalTokens)
         assertEquals(50.0, report.latestInsight?.efficiencySummary?.cachedInputPercent)
+        assertEquals("019cb301-f5cf-76c0-a1db-8ef3580d7800", report.latestInsight?.resumeTarget?.sessionId)
+        assertEquals(projectRoot, report.latestInsight?.resumeTarget?.workingDirectory)
     }
 
     @Test

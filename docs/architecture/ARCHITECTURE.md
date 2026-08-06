@@ -130,6 +130,13 @@ src/main/kotlin/com/spmisha134/skillops/
     settings/              # Local insight settings
     ui/                    # Shared insights dialog
 
+  sessions/
+    model/                 # Pure resumable-session models
+    discovery/             # Codex metadata and user-command extraction
+    service/               # Project-session discovery orchestration
+    terminal/              # IntelliJ terminal launch and resume command construction
+    ui/                    # Searchable session selection dialog
+
 src/main/resources/
   META-INF/plugin.xml
   templates/

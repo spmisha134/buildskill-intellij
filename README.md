@@ -81,6 +81,17 @@ Tools
 → Show Run Insights
 ```
 
+Resume a previous project Codex session in a new IntelliJ terminal:
+
+```text
+Tools
+→ SkillOps
+→ Codex
+→ Resume Session
+```
+
+Search by task, skill, session ID, or working directory, then double-click a session or select **Resume Session**. Run Insights also provides the same resume action for the selected Codex run.
+
 Claude Code has the same action under:
 
 ```text
@@ -200,6 +211,14 @@ To run an IntelliJ instance with the plugin installed:
 ./gradlew runIde
 ```
 
+`runIde` launches the latest development target, IntelliJ IDEA 2025.2.6.2. To manually check the oldest supported IDE instead:
+
+```bash
+./gradlew runIdeOldest
+```
+
+The plugin still compiles and runs its unit tests against IntelliJ IDEA 2024.2.5 so newer APIs cannot be used accidentally.
+
 Plugin Verification
 -------------------
 
@@ -214,7 +233,7 @@ To run local verification:
 Release
 -------
 
-The first public release is `0.1.0`.
+The current release candidate is `0.4.0`.
 Release steps, signing requirements, and Marketplace publication notes are maintained in [docs/development/RUNBOOK.md](docs/development/RUNBOOK.md).
 
 License

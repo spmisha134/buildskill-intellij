@@ -32,6 +32,7 @@ class RunInsightsReportFormatter {
         val lines = mutableListOf<String>()
         lines += "Skill: ${skillNames(insight).joinToString()}"
         lines += "Updated: ${formatInstant(insight.lastModifiedMs)}"
+        insight.resumeTarget?.let { lines += "Session: ${it.sessionId}" }
         insight.invocationCommand?.let { lines += "Command: $it" }
         lines += ""
         lines += "Tokens"
