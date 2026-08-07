@@ -8,6 +8,7 @@ import com.spmisha134.skillops.insights.run.SkillOpsRunInsightsReport
 import com.spmisha134.skillops.insights.run.SkillRunInsight
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettings
 import com.spmisha134.skillops.insights.usage.TokenUsage
+import com.spmisha134.skillops.sessions.model.SessionResumeTarget
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -71,6 +72,7 @@ class ClaudeRunInsightsService(
                 tokenUsage = usage,
                 efficiencySummary = efficiency,
                 warnings = session.warnings + efficiency.warnings,
+                resumeTarget = session.resumeTarget(),
             )
         }
         return SkillOpsRunInsightsReport(
@@ -121,6 +123,15 @@ class ClaudeRunInsightsService(
 
     private fun safeSize(path: Path): Long =
         runCatching { Files.size(path) }.getOrDefault(0)
+
+    private fun ParsedClaudeSession.resumeTarget(): SessionResumeTarget? {
+        val sessionId = events.firstNotNullOfOrNull { it.payload?.get("sessionId")?.asString }
+            ?: file.fileName.removeSuffix(".jsonl").takeIf(String::isNotBlank)
+        val cwd = events.firstNotNullOfOrNull {
+            it.payload?.get("cwd")?.takeIf { value -> value.isJsonPrimitive }?.asString
+        }
+        return sessionId?.let { SessionResumeTarget(it, cwd?.let(Path::of)) }
+    }
 
     private fun TokenUsage?.hasPositiveUsage(): Boolean =
         this != null && listOfNotNull(

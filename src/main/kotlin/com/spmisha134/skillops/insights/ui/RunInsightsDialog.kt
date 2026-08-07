@@ -13,6 +13,7 @@ import com.spmisha134.skillops.insights.run.SkillOpsRunInsightsReport
 import com.spmisha134.skillops.insights.run.SkillRunInsight
 import com.spmisha134.skillops.presentation.NotificationPresenter
 import com.spmisha134.skillops.sessions.terminal.CodexSessionTerminalLauncher
+import com.spmisha134.skillops.sessions.terminal.ClaudeSessionTerminalLauncher
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.datatransfer.StringSelection
@@ -26,6 +27,7 @@ class RunInsightsDialog(
     private val report: SkillOpsRunInsightsReport,
     private val formatter: RunInsightsReportFormatter,
     private val terminalLauncher: CodexSessionTerminalLauncher = CodexSessionTerminalLauncher(),
+    private val claudeTerminalLauncher: ClaudeSessionTerminalLauncher = ClaudeSessionTerminalLauncher(),
 ) : DialogWrapper(project) {
     private var selectedInsight: SkillRunInsight? = null
     private val textArea = JBTextArea().apply {
@@ -100,8 +102,8 @@ class RunInsightsDialog(
         }
         textArea.caretPosition = 0
         val resumable = selectedInsight?.resumeTarget != null
-        resumeButton.isVisible = report.platformName == "Codex"
-        copySessionIdButton.isVisible = report.platformName == "Codex"
+        resumeButton.isVisible = report.platformName == "Codex" || report.platformName == "Claude"
+        copySessionIdButton.isVisible = report.platformName == "Codex" || report.platformName == "Claude"
         resumeButton.isEnabled = resumable
         copySessionIdButton.isEnabled = resumable
     }
@@ -126,12 +128,16 @@ class RunInsightsDialog(
         val projectRoot = project.basePath?.let(Path::of)
             ?: return NotificationPresenter.showError(project, "No project base path is available.")
         try {
-            terminalLauncher.resume(project, target, projectRoot)
+            if (report.platformName == "Claude") {
+                claudeTerminalLauncher.resume(project, target, projectRoot)
+            } else {
+                terminalLauncher.resume(project, target, projectRoot)
+            }
             close(OK_EXIT_CODE)
         } catch (error: Throwable) {
             NotificationPresenter.showError(
                 project,
-                "Could not resume Codex session: ${error.message ?: error.javaClass.simpleName}",
+                "Could not resume ${report.platformName} session: ${error.message ?: error.javaClass.simpleName}",
             )
         }
     }

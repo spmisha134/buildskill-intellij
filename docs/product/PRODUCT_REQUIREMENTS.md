@@ -110,6 +110,8 @@ User right-clicks a project or folder
 
 The Codex menu must expose a first-class `Resume Session` action. It must discover resumable local Codex sessions belonging to the current project, support search by task, skill, session ID, or working directory, and resume the selected session in a new IntelliJ terminal tab. The session list must prefer the explicit Codex user message over injected project instructions when presenting the task. The same action must be available contextually for the selected Codex Run Insights entry.
 
+Claude Code must provide the equivalent first-class `Resume Session` action. It must discover local Claude transcripts belonging to the current project, support search by task, skill, session ID, or working directory, and open the selected session with `claude --resume <session-id>`. The dialog must also provide `claude --continue` and Claude's no-argument resume picker. Named Claude sessions are supported through the `claude -n <name>` command form. Claude Run Insights entries must expose the same resume and copy-session-ID actions.
+
 ### 7.1 Create skill action
 
 The plugin must add an IntelliJ project-view New-menu action:

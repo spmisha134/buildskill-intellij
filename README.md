@@ -94,12 +94,15 @@ Search by task, skill, session ID, or working directory, then double-click a ses
 
 ![Search and resume a Codex session](docs/images/resume-sessions.png)
 
-Claude Code has the same action under:
+Claude Code has the same action, including `claude --resume <session-id>`, `claude --continue`, and Claude's session picker, under:
 
 ```text
 Tools
 → SkillOps
 → Claude
+→ Resume Session
+
+The Claude session dialog also supports searching by task, skill, session ID, or working directory. Named sessions can be resumed with `claude -n <name>`.
 → Show Run Insights
 ```
 

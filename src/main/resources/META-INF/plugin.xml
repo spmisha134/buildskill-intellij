@@ -12,7 +12,7 @@
             <li>Generate optional scripts and assets, plus Codex interface metadata.</li>
             <li>Validate Codex skills before committing them.</li>
             <li>Review local Codex, Claude, and Gemini run history, token usage, cache behavior, efficiency, and sessions without skills.</li>
-            <li>Search and resume previous project Codex sessions in a new IntelliJ terminal.</li>
+            <li>Search and resume previous project Codex or Claude sessions in a new IntelliJ terminal.</li>
         </ul>
         <p><strong>Private by design:</strong> generation, validation, and session analysis run locally. SkillOps does not upload project files, prompts, session logs, credentials, or analytics.</p>
     ]]></description>
@@ -96,6 +96,13 @@
                 class="com.spmisha134.skillops.actions.ShowClaudeRunInsightsAction"
                 text="Show Run Insights"
                 description="Show token usage and efficiency metrics from recent local Claude sessions."
+                icon="com.spmisha134.skillops.ui.icons.SkillOpsIcons.ACTION">
+            <add-to-group group-id="com.spmisha134.skillops.ClaudeGroup" anchor="last"/>
+        </action>
+        <action id="com.spmisha134.skillops.ResumeClaudeSession"
+                class="com.spmisha134.skillops.actions.ResumeClaudeSessionAction"
+                text="Resume Session"
+                description="Find and resume a previous project Claude session in a new terminal."
                 icon="com.spmisha134.skillops.ui.icons.SkillOpsIcons.ACTION">
             <add-to-group group-id="com.spmisha134.skillops.ClaudeGroup" anchor="last"/>
         </action>

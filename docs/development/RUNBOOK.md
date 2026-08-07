@@ -1,6 +1,6 @@
 # Development and Publishing Runbook
 
-This runbook describes how to build, verify, package, and publish SkillOps for IntelliJ IDEA.
+This runbook describes how to build, verify, package, and manually publish SkillOps for IntelliJ IDEA.
 
 ## 1. Local development
 
@@ -160,17 +160,18 @@ PRIVATE_KEY_PASSWORD
 
 ## 8. Deployment token
 
-Automated publishing requires a JetBrains Marketplace deployment token.
+No JetBrains Marketplace deployment token is required in GitHub because automated publishing is
+disabled. Manual publication uses the Marketplace web interface and the locally built ZIP.
 
-Store it as a GitHub secret.
+## 9. Automated publishing
 
-Recommended secret name:
+Marketplace publishing from GitHub Actions is intentionally disabled. The release workflow is
+manual-only and its publishing job is disabled. Do not add `PUBLISH_TOKEN` or re-enable the job
+unless automated publication is explicitly approved.
 
-```text
-PUBLISH_TOKEN
-```
+Marketplace publication must be performed manually using the ZIP from `build/distributions/`.
 
-## 9. Automated publishing checklist
+The following checklist is retained only as a future review checklist:
 
 Before enabling automated publishing:
 
