@@ -239,6 +239,30 @@ Responsibilities:
 and validation belong in their respective subpackages. Copy domain models live in
 `model/copy` as one-purpose files and must not depend on IntelliJ APIs.
 
+### 5.9 `sessions`
+
+Provides the shared resume-session workflow for Codex and Claude without coupling
+provider file formats to IntelliJ UI code.
+
+- `model/` contains pure resumable-session targets, provider session records, and
+  discovery results. Models must not depend on IntelliJ, Swing, or filesystem I/O.
+- `discovery/` extracts provider metadata from local session files. It does not
+  launch terminals or render dialogs.
+- `service/` resolves the provider's local session root, filters sessions to the
+  current project, applies provider-specific parsing, and returns warnings with
+  usable results.
+- `terminal/` owns provider command construction and IntelliJ terminal launching.
+  Codex uses `codex resume <session-id>`; Claude supports `claude --resume`,
+  `claude --continue`, the session picker, and named-session commands.
+- `ui/` provides provider-specific searchable selection dialogs. Dialogs display
+  task, working directory, last activity, and the exact command, then delegate
+  execution to the terminal package.
+
+Both providers use the neutral `SessionResumeTarget` concept. Provider-specific
+session metadata remains in `CodexSession` or `ClaudeSession`; it must not be
+forced into a single provider-shaped model. Run Insights may create or pass a
+resume target, but it does not own session discovery or terminal behavior.
+
 ## 6. Domain model
 
 ### `SkillDefinition`

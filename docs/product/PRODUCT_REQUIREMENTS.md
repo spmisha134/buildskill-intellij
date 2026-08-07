@@ -108,9 +108,20 @@ User right-clicks a project or folder
 
 ### 7.0 Resume session
 
-The Codex menu must expose a first-class `Resume Session` action. It must discover resumable local Codex sessions belonging to the current project, support search by task, skill, session ID, or working directory, and resume the selected session in a new IntelliJ terminal tab. The session list must prefer the explicit Codex user message over injected project instructions when presenting the task. The same action must be available contextually for the selected Codex Run Insights entry.
+Resume Session is a provider-specific implementation of one shared user workflow. Both providers must:
 
-Claude Code must provide the equivalent first-class `Resume Session` action. It must discover local Claude transcripts belonging to the current project, support search by task, skill, session ID, or working directory, and open the selected session with `claude --resume <session-id>`. The dialog must also provide `claude --continue` and Claude's no-argument resume picker. Named Claude sessions are supported through the `claude -n <name>` command form. Claude Run Insights entries must expose the same resume and copy-session-ID actions.
+- expose a first-class `Resume Session` action under the provider's SkillOps menu
+- discover sessions or transcripts from local files only and restrict results to the open project
+- support search by task, skill, session ID, or working directory
+- show the selected task, working directory, last activity, and exact command before resuming
+- open a new IntelliJ terminal tab in the session's working directory, falling back to the project root when it is unavailable
+- provide `Copy Session ID` for a selected session where an ID exists
+- report missing session roots, unreadable files, and malformed records as non-fatal warnings
+- expose contextual resume behavior from the selected Run Insights entry
+
+The Codex menu must expose a first-class `Resume Session` action. It must discover resumable local Codex sessions belonging to the current project and resume the selected session with `codex resume <session-id>`. The session list must prefer the explicit Codex user message over injected project instructions when presenting the task. Codex sessions must support double-click and Enter-key resume from the list.
+
+Claude Code must provide the equivalent first-class `Resume Session` action. It must discover local Claude transcripts belonging to the current project and resume the selected session with `claude --resume <session-id>`. The dialog must also provide `claude --continue`, Claude's no-argument resume picker, and named sessions through `claude -n <name>`. Claude Run Insights entries must expose the same resume and copy-session-ID actions.
 
 ### 7.1 Create skill action
 
