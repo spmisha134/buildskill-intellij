@@ -7,6 +7,8 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettingsState
+import com.spmisha134.skillops.insights.run.RunInsightsCanceledException
+import com.spmisha134.skillops.insights.run.RunInsightsProgress
 import com.spmisha134.skillops.presentation.NotificationPresenter
 import com.spmisha134.skillops.sessions.model.CodexSessionsResult
 import com.spmisha134.skillops.sessions.service.CodexSessionService
@@ -29,13 +31,22 @@ class ResumeCodexSessionAction(
         val settings = SkillOpsInsightsSettingsState.getInstance().settings.copy()
 
         ProgressManager.getInstance().run(
-            object : Task.Modal(project, "Loading Codex sessions", false) {
+            object : Task.Modal(project, "Loading Codex sessions", true) {
                 private lateinit var result: CodexSessionsResult
 
                 override fun run(indicator: ProgressIndicator) {
-                    indicator.isIndeterminate = true
+                    indicator.isIndeterminate = false
                     indicator.text = "Scanning local Codex sessions…"
-                    result = sessionService.findProjectSessions(projectRoot, settings)
+                    result = sessionService.findProjectSessions(projectRoot, settings, object : RunInsightsProgress {
+                        override fun update(message: String, completed: Int, total: Int) {
+                            indicator.text = message
+                            indicator.fraction = if (total > 0) completed.toDouble() / total else 0.0
+                        }
+
+                        override fun checkCanceled() {
+                            if (indicator.isCanceled) throw RunInsightsCanceledException()
+                        }
+                    })
                 }
 
                 override fun onSuccess() {
@@ -48,6 +59,7 @@ class ResumeCodexSessionAction(
                 }
 
                 override fun onThrowable(error: Throwable) {
+                    if (error is RunInsightsCanceledException) return
                     NotificationPresenter.showError(
                         project,
                         "Could not load Codex sessions: ${error.message ?: error.javaClass.simpleName}",

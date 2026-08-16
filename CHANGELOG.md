@@ -4,6 +4,21 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-08-16
+
+### Added
+- Shared progress reporting and cancellation for large Codex, Claude, and Gemini session scans.
+
+### Changed
+- Stream Codex, Claude, and Gemini session analysis with bounded per-session memory.
+- Stream Codex and Claude resume-session discovery without retaining complete transcript event lists.
+- Preserve provider-specific token, skill, project, efficiency, and resume metadata while processing incrementally.
+
+### Fixed
+- Reduce heap pressure when Run Insights scans large local session histories.
+- Avoid retaining duplicate raw JSON text in parsed events.
+- Show the active provider, session number, and filename during parsing.
+
 ## [0.4.0] - 2026-08-06
 
 ### Added

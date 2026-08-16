@@ -13,7 +13,7 @@ class GeminiSkillUsageMatcher {
                 activated.any { it.equals(skill, ignoreCase = true) }
             }
         }
-        val searchable = events.joinToString("\n") { it.rawText }.lowercase()
+        val searchable = events.joinToString("\n") { it.payload?.toString().orEmpty() }.lowercase()
         return repositorySkills.filter { skill ->
             searchable.contains(".gemini/skills/${skill.lowercase()}") ||
                 searchable.contains("skill: ${skill.lowercase()}")

@@ -1,6 +1,6 @@
 # SkillOps 0.3.0
 
-SkillOps can now copy and convert repository skills between Codex, Claude Code, and Gemini CLI.
+SkillOps 0.3.0 adds repository skill conversion between Codex, Claude Code, and Gemini CLI.
 
 - Select one or more skills from `.agents/skills`, `.claude/skills`, or `.gemini/skills`.
 - Convert them into the selected target platform's repository structure.
@@ -11,3 +11,7 @@ SkillOps can now copy and convert repository skills between Codex, Claude Code, 
 - Resolve actual target conflicts with replace, rename, or skip choices.
 - Stage writes and restore existing targets if replacement fails.
 - Keep conversion deterministic, local, and free of API or network calls.
+
+## Compatibility
+
+- Supports IntelliJ IDEA 2024.2 and newer releases.

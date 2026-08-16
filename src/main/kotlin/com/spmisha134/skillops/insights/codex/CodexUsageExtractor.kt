@@ -85,7 +85,6 @@ class CodexUsageExtractor {
             "timestamp" to timestamp,
             "type" to type,
             "payload" to payload.toPlainValue(),
-            "rawText" to rawText,
         )
 
     private fun JsonElement.toPlainValue(): Any? =

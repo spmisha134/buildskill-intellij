@@ -46,13 +46,11 @@ class CodexSessionFileScanner(
         collectJsonlFiles(sessionsDirectory, files, warnings)
 
         return CodexSessionScanResult(
-            files = files
-                .sortedWith(
+            files = files.sortedWith(
                     compareByDescending<CodexSessionFile> { it.fileName.startsWith(ROLLOUT_PREFIX) }
                         .thenByDescending { it.lastModifiedMs }
                         .thenBy { it.fileName }
-                )
-                .take(normalizedSettings.maxSessionsToScan),
+                ).take(normalizedSettings.maxSessionsToScan),
             warnings = warnings,
         )
     }

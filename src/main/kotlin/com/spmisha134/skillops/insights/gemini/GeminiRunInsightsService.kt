@@ -8,6 +8,7 @@ import com.spmisha134.skillops.insights.run.RunInsightsService
 import com.spmisha134.skillops.insights.run.SkillCatalog
 import com.spmisha134.skillops.insights.run.SkillOpsRunInsightsReport
 import com.spmisha134.skillops.insights.run.SkillRunInsight
+import com.spmisha134.skillops.insights.run.RunInsightsProgress
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettings
 import com.spmisha134.skillops.insights.usage.TokenUsage
 import java.nio.file.Path
@@ -15,13 +16,12 @@ import java.nio.file.Path
 class GeminiRunInsightsService(
     private val scanner: GeminiSessionFileScanner = GeminiSessionFileScanner(),
     private val parser: InsightJsonlParser = InsightJsonlParser(),
-    private val usageExtractor: GeminiUsageExtractor = GeminiUsageExtractor(),
     private val skillCatalog: SkillCatalog = SkillCatalog(),
-    private val skillMatcher: GeminiSkillUsageMatcher = GeminiSkillUsageMatcher(),
 ) : RunInsightsService {
     override fun buildReport(
         projectRoot: Path,
         settings: SkillOpsInsightsSettings,
+        progress: RunInsightsProgress,
     ): SkillOpsRunInsightsReport {
         val normalized = settings.normalized()
         val scan = scanner.scan(normalized)
@@ -36,25 +36,28 @@ class GeminiRunInsightsService(
         val skipped = scan.files.size - projectFiles.size
         if (skipped > 0) warnings += "Ignored $skipped Gemini session(s) belonging to other projects."
 
-        val parsedProjectFiles = projectFiles.map { file -> file to parser.parse(file.path) }
-        val completedOrStartedRuns = parsedProjectFiles.filter { (_, parsed) ->
-            parsed.events.any { event ->
-                val type = event.payload?.get("type")
-                type?.takeIf { it.isJsonPrimitive && it.asJsonPrimitive.isString }
-                    ?.asString in MEANINGFUL_RECORD_TYPES
+        val insights = mutableListOf<SkillRunInsight>()
+        var incomplete = 0
+        projectFiles.forEachIndexed { index, file ->
+            progress.checkCanceled()
+            progress.update("Parsing Gemini session ${index + 1} of ${projectFiles.size}", index, projectFiles.size)
+            val accumulator = GeminiStreamingAccumulator(skills)
+            val parseWarnings = parser.stream(
+                file.path,
+                progress.withPrefix("Gemini session ${index + 1} of ${projectFiles.size}"),
+                accumulator::accept,
+            )
+            if (!accumulator.hasMeaningfulRecord()) {
+                incomplete++
+                return@forEachIndexed
             }
-        }
-        val incomplete = parsedProjectFiles.size - completedOrStartedRuns.size
-        if (incomplete > 0) {
-            warnings += "Ignored $incomplete empty or authentication-aborted Gemini session(s)."
-        }
 
-        val insights = completedOrStartedRuns.map { (file, parsed) ->
-            val usage = usageExtractor.extract(parsed.events)
-            val matched = skillMatcher.matchSkills(parsed.events, skills)
-            val recorded = skillMatcher.recordedSkillNames(parsed.events)
-            val efficiency = efficiency(parsed.events, usage, file.sizeBytes, normalized)
-            SkillRunInsight(
+            val usage = accumulator.tokenUsage()
+            val matched = accumulator.matchedSkills()
+            val recorded = accumulator.recordedSkills()
+            val (searches, toolCalls) = accumulator.counts()
+            val efficiency = efficiency(searches, toolCalls, usage, file.sizeBytes, normalized)
+            insights += SkillRunInsight(
                 sessionPath = file.path,
                 sessionFileName = file.fileName,
                 lastModifiedMs = file.lastModifiedMs,
@@ -62,23 +65,29 @@ class GeminiRunInsightsService(
                 matchedSkillName = matched.firstOrNull(),
                 matchedSkillNames = matched,
                 recordedSkillNames = recorded.ifEmpty { matched },
-                invocationCommand = skillMatcher.invocationCommand(parsed.events),
+                invocationCommand = accumulator.invocationCommand(),
                 tokenUsage = usage,
                 efficiencySummary = efficiency,
-                warnings = parsed.warnings + efficiency.warnings,
+                warnings = parseWarnings + efficiency.warnings,
             )
+        }
+        if (incomplete > 0) {
+            warnings += "Ignored $incomplete empty or authentication-aborted Gemini session(s)."
         }
         return SkillOpsRunInsightsReport(insights, warnings, "Gemini")
     }
 
+    fun buildReport(projectRoot: Path, settings: SkillOpsInsightsSettings): SkillOpsRunInsightsReport =
+        buildReport(projectRoot, settings, RunInsightsProgress.NONE)
+
     private fun efficiency(
-        events: List<RawInsightEvent>,
+        searchCount: Int,
+        toolCallCount: Int,
         usage: TokenUsage?,
         sizeBytes: Long,
         settings: SkillOpsInsightsSettings,
     ): EfficiencySummary {
-        val toolNames = events.flatMap(::toolNames)
-        val searches = toolNames.count { it in SEARCH_TOOLS }
+        val searches = searchCount
         val notes = mutableListOf<String>()
         if (usage == null) notes += "No token usage event found in this session."
         if (sizeBytes >= settings.highOutputWarningBytes) {
@@ -95,7 +104,7 @@ class GeminiRunInsightsService(
             reasoningOutputPercent = percent(usage?.reasoningOutputTokens, usage?.outputTokens),
             searchCount = searches,
             warnings = notes,
-            toolCallCount = toolNames.size,
+            toolCallCount = toolCallCount,
         )
     }
 

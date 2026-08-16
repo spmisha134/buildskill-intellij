@@ -22,7 +22,7 @@ class CodexSkillUsageMatcher {
         val searchableText = events
             .asSequence()
             .filter(::isUserAuthored)
-            .joinToString(separator = "\n") { it.rawText.lowercase() }
+            .joinToString(separator = "\n") { it.payload?.toString()?.lowercase().orEmpty() }
         return skillNames.filter { skillName ->
             val normalizedSkillName = skillName.lowercase()
             searchableText.contains(".agents/skills/$normalizedSkillName") ||
@@ -41,11 +41,11 @@ class CodexSkillUsageMatcher {
     fun detectRecordedSkillNames(events: List<RawInsightEvent>): List<String> {
         val searchableText = events
             .asSequence()
-            .map(RawInsightEvent::rawText)
-            .filter { rawText ->
-                rawText.contains("\"role\":\"user\"") &&
-                    rawText.contains("<skill>") &&
-                    rawText.contains("</skill>")
+            .map { it.payload?.toString().orEmpty() }
+            .filter { text ->
+                text.contains("\"role\":\"user\"") &&
+                    text.contains("<skill>") &&
+                    text.contains("</skill>")
             }
             .joinToString(separator = "\n")
         return RECORDED_SKILL_PATTERNS
@@ -55,9 +55,9 @@ class CodexSkillUsageMatcher {
 
     fun invocationCommand(events: List<RawInsightEvent>): String? {
         val skillEventIndex = events.indexOfFirst { event ->
-            event.rawText.contains("\"role\":\"user\"") &&
-                event.rawText.contains("<skill>") &&
-                event.rawText.contains("</skill>")
+            event.payload?.toString()?.contains("\"role\":\"user\"") == true &&
+                event.payload.toString().contains("<skill>") &&
+                event.payload.toString().contains("</skill>")
         }
         if (skillEventIndex < 0) {
             return events.firstNotNullOfOrNull(::userMessage)

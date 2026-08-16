@@ -12,6 +12,8 @@ import com.spmisha134.skillops.insights.gemini.GeminiRunInsightsService
 import com.spmisha134.skillops.insights.presentation.RunInsightsReportFormatter
 import com.spmisha134.skillops.insights.run.RunInsightsService
 import com.spmisha134.skillops.insights.run.SkillOpsRunInsightsReport
+import com.spmisha134.skillops.insights.run.RunInsightsCanceledException
+import com.spmisha134.skillops.insights.run.RunInsightsProgress
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettingsState
 import com.spmisha134.skillops.insights.ui.RunInsightsDialog
 import com.spmisha134.skillops.presentation.NotificationPresenter
@@ -40,9 +42,18 @@ open class ShowRunInsightsAction(
                 private lateinit var report: SkillOpsRunInsightsReport
 
                 override fun run(indicator: ProgressIndicator) {
-                    indicator.isIndeterminate = true
+                    indicator.isIndeterminate = false
                     indicator.text = "Scanning local $platformLabel sessions…"
-                    report = service.buildReport(projectRoot, settings)
+                    report = service.buildReport(projectRoot, settings, object : RunInsightsProgress {
+                        override fun update(message: String, completed: Int, total: Int) {
+                            indicator.text = message
+                            indicator.fraction = if (total > 0) completed.toDouble() / total else 0.0
+                        }
+
+                        override fun checkCanceled() {
+                            if (indicator.isCanceled) throw RunInsightsCanceledException()
+                        }
+                    })
                 }
 
                 override fun onSuccess() {
@@ -50,6 +61,7 @@ open class ShowRunInsightsAction(
                 }
 
                 override fun onThrowable(error: Throwable) {
+                    if (error is RunInsightsCanceledException) return
                     NotificationPresenter.showError(
                         project,
                         "Could not show $platformLabel run insights: ${error.message ?: error.javaClass.simpleName}",
@@ -58,6 +70,7 @@ open class ShowRunInsightsAction(
             }
         )
     }
+
 }
 
 class ShowClaudeRunInsightsAction : ShowRunInsightsAction(ClaudeRunInsightsService(), "Claude")

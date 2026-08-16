@@ -14,6 +14,16 @@ class CodexEfficiencySummaryCalculator {
     ): EfficiencySummary {
         val searchCount = events.count(::isSearchEvent)
         val toolCallCount = events.sumOf(::toolCallCount)
+        return calculate(searchCount, toolCallCount, tokenUsage, sizeBytes, settings)
+    }
+
+    fun calculate(
+        searchCount: Int,
+        toolCallCount: Int,
+        tokenUsage: TokenUsage?,
+        sizeBytes: Long,
+        settings: SkillOpsInsightsSettings,
+    ): EfficiencySummary {
         val warnings = mutableListOf<String>()
 
         if (tokenUsage == null) {
@@ -44,7 +54,7 @@ class CodexEfficiencySummaryCalculator {
     }
 
     private fun isSearchEvent(event: RawInsightEvent): Boolean {
-        val text = event.rawText.lowercase()
+        val text = event.payload?.toString()?.lowercase().orEmpty()
         return text.contains("\"search_query\"") ||
             text.contains("\"find\"") ||
             text.contains("\"cmd\":\"rg") ||
@@ -54,7 +64,7 @@ class CodexEfficiencySummaryCalculator {
     }
 
     private fun toolCallCount(event: RawInsightEvent): Int =
-        TOOL_USE_PATTERN.findAll(event.rawText).count()
+        TOOL_USE_PATTERN.findAll(event.payload?.toString().orEmpty()).count()
 
     private fun ratio(numerator: Long?, denominator: Long?): Double? =
         if (numerator != null && denominator != null && denominator > 0) {

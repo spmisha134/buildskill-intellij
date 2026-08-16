@@ -7,6 +7,5 @@ data class RawInsightEvent(
     val timestamp: String?,
     val type: String?,
     val payload: JsonObject?,
-    val rawText: String,
     val parseError: String?,
 )

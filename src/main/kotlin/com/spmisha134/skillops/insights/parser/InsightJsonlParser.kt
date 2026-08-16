@@ -3,20 +3,47 @@ package com.spmisha134.skillops.insights.parser
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.JsonSyntaxException
+import com.spmisha134.skillops.insights.run.RunInsightsProgress
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.Path
 
 class InsightJsonlParser {
-    fun parse(path: Path): InsightParseResult {
+    fun parse(path: Path): InsightParseResult = parse(path, RunInsightsProgress.NONE)
+
+    fun parse(path: Path, progress: RunInsightsProgress = RunInsightsProgress.NONE): InsightParseResult {
         val events = mutableListOf<RawInsightEvent>()
+        val warnings = stream(path, progress) { event -> events += event }
+
+        return InsightParseResult(
+            filePath = path.toAbsolutePath().normalize(),
+            events = events,
+            warnings = warnings,
+        )
+    }
+
+    /**
+     * Reads a JSONL file incrementally and emits each parsed event immediately.
+     * Consumers that need bounded memory should aggregate from [consumer] rather
+     * than calling [parse], which intentionally retains events for existing APIs.
+     */
+    fun stream(
+        path: Path,
+        progress: RunInsightsProgress = RunInsightsProgress.NONE,
+        consumer: (RawInsightEvent) -> Unit,
+    ): List<String> {
         val warnings = mutableListOf<String>()
+        val totalBytes = runCatching { Files.size(path) }.getOrDefault(0L)
+        var processedBytes = 0L
 
         try {
             Files.newBufferedReader(path, StandardCharsets.UTF_8).use { reader ->
                 reader.lineSequence().forEachIndexed { index, line ->
-                    parseLine(lineNumber = index + 1, rawText = line, warnings = warnings)?.let(events::add)
+                    progress.checkCanceled()
+                    processedBytes += line.toByteArray(StandardCharsets.UTF_8).size + 1
+                    progress.update("Parsing ${path.fileName}", processedBytes.coerceAtMost(totalBytes).toInt(), totalBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+                    parseLine(lineNumber = index + 1, rawText = line, warnings = warnings)?.let(consumer)
                 }
             }
         } catch (exception: IOException) {
@@ -25,11 +52,7 @@ class InsightJsonlParser {
             warnings += "Permission denied reading JSONL file $path: ${exception.message ?: exception.javaClass.simpleName}"
         }
 
-        return InsightParseResult(
-            filePath = path.toAbsolutePath().normalize(),
-            events = events,
-            warnings = warnings,
-        )
+        return warnings
     }
 
     private fun parseLine(
@@ -51,7 +74,6 @@ class InsightJsonlParser {
                 timestamp = null,
                 type = null,
                 payload = null,
-                rawText = rawText,
                 parseError = message,
             )
         }
@@ -64,7 +86,6 @@ class InsightJsonlParser {
                 timestamp = null,
                 type = null,
                 payload = null,
-                rawText = rawText,
                 parseError = message,
             )
         }
@@ -75,7 +96,6 @@ class InsightJsonlParser {
             timestamp = payload.stringAt("timestamp"),
             type = payload.eventType(),
             payload = payload,
-            rawText = rawText,
             parseError = null,
         )
     }

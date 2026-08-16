@@ -59,7 +59,7 @@ class InsightJsonlParserTest {
         assertEquals(1, result.warnings.size)
         assertTrue(result.warnings.single().contains("Line 2"))
         assertNotNull(result.events[1].parseError)
-        assertEquals("""{"timestamp":""", result.events[1].rawText)
+        assertNull(result.events[1].payload)
     }
 
     @Test

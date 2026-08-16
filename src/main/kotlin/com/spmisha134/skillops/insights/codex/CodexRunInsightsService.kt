@@ -5,8 +5,8 @@ import com.spmisha134.skillops.insights.run.RunInsightsService
 import com.spmisha134.skillops.insights.run.SkillCatalog
 import com.spmisha134.skillops.insights.run.SkillOpsRunInsightsReport
 import com.spmisha134.skillops.insights.run.SkillRunInsight
+import com.spmisha134.skillops.insights.run.RunInsightsProgress
 import com.spmisha134.skillops.insights.settings.SkillOpsInsightsSettings
-import com.spmisha134.skillops.sessions.discovery.CodexSessionMetadataExtractor
 import java.nio.file.Path
 
 class CodexRunInsightsService(
@@ -14,14 +14,12 @@ class CodexRunInsightsService(
     private val parser: InsightJsonlParser = InsightJsonlParser(),
     private val tokenUsageExtractor: CodexUsageExtractor = CodexUsageExtractor(),
     private val skillCatalog: SkillCatalog = SkillCatalog(),
-    private val skillUsageMatcher: CodexSkillUsageMatcher = CodexSkillUsageMatcher(),
-    private val projectSessionMatcher: CodexProjectSessionMatcher = CodexProjectSessionMatcher(),
     private val efficiencySummaryCalculator: CodexEfficiencySummaryCalculator = CodexEfficiencySummaryCalculator(),
-    private val sessionMetadataExtractor: CodexSessionMetadataExtractor = CodexSessionMetadataExtractor(),
 ) : RunInsightsService {
     override fun buildReport(
         projectRoot: Path,
         settings: SkillOpsInsightsSettings,
+        progress: RunInsightsProgress,
     ): SkillOpsRunInsightsReport {
         val normalizedSettings = settings.normalized()
         val scanResult = sessionFileScanner.scan(normalizedSettings)
@@ -32,30 +30,40 @@ class CodexRunInsightsService(
             warnings += "No SkillOps skills found under .agents/skills/."
         }
 
-        val parsedSessions = scanResult.files.map { sessionFile ->
-            sessionFile to parser.parse(sessionFile.path)
-        }
-        val projectSessions = parsedSessions.filter { (_, parseResult) ->
-            projectSessionMatcher.belongsToProject(parseResult.events, projectRoot) != false
-        }
-        val skippedSessionCount = parsedSessions.size - projectSessions.size
-        if (skippedSessionCount > 0) {
-            warnings += "Ignored $skippedSessionCount Codex session(s) belonging to other projects."
-        }
+        // Do not retain parsed events for every session. A JSONL rollout can be very
+        // large, and each event contains both a Gson tree and its original line.
+        // Processing one file at a time keeps peak memory proportional to the largest
+        // session rather than to all configured sessions.
+        val insights = mutableListOf<SkillRunInsight>()
+        var skippedSessionCount = 0
+        scanResult.files.forEachIndexed { index, sessionFile ->
+            progress.checkCanceled()
+            progress.update("Parsing Codex session ${index + 1} of ${scanResult.files.size}", index, scanResult.files.size)
+            val accumulator = CodexStreamingAccumulator(projectRoot, skillNames, tokenUsageExtractor)
+            val parseWarnings = parser.stream(
+                sessionFile.path,
+                progress.withPrefix("Codex session ${index + 1} of ${scanResult.files.size}"),
+                accumulator::accept,
+            )
+            if (accumulator.projectBelongsToProject() == false) {
+                skippedSessionCount++
+                return@forEachIndexed
+            }
 
-        val insights = projectSessions.map { (sessionFile, parseResult) ->
-            val tokenUsage = tokenUsageExtractor.extract(parseResult.events)
-            val matchedSkillNames = skillUsageMatcher.matchSkills(parseResult.events, skillNames)
-            val recordedSkillNames = skillUsageMatcher.detectRecordedSkillNames(parseResult.events)
+            val tokenUsage = accumulator.tokenUsage()
+            val matchedSkillNames = accumulator.matchedSkillNames()
+            val recordedSkillNames = accumulator.recordedSkillNames()
+            val (searchCount, toolCallCount) = accumulator.efficiencyCounts()
             val efficiencySummary = efficiencySummaryCalculator.calculate(
-                events = parseResult.events,
+                searchCount = searchCount,
+                toolCallCount = toolCallCount,
                 tokenUsage = tokenUsage,
                 sizeBytes = sessionFile.sizeBytes,
                 settings = normalizedSettings,
             )
-            val sessionMetadata = sessionMetadataExtractor.extract(parseResult.events, sessionFile.fileName)
+            val sessionMetadata = accumulator.resumeMetadata(sessionFile.fileName)
 
-            SkillRunInsight(
+            insights += SkillRunInsight(
                 sessionPath = sessionFile.path,
                 sessionFileName = sessionFile.fileName,
                 lastModifiedMs = sessionFile.lastModifiedMs,
@@ -63,17 +71,25 @@ class CodexRunInsightsService(
                 matchedSkillName = matchedSkillNames.firstOrNull(),
                 matchedSkillNames = matchedSkillNames,
                 recordedSkillNames = recordedSkillNames.ifEmpty { matchedSkillNames },
-                invocationCommand = skillUsageMatcher.invocationCommand(parseResult.events),
+                invocationCommand = accumulator.invocationCommand(),
                 tokenUsage = tokenUsage,
                 efficiencySummary = efficiencySummary,
-                warnings = parseResult.warnings + efficiencySummary.warnings,
+                warnings = parseWarnings + efficiencySummary.warnings,
                 resumeTarget = sessionMetadata?.toResumeTarget(),
             )
+        }
+
+        if (skippedSessionCount > 0) {
+            warnings += "Ignored $skippedSessionCount Codex session(s) belonging to other projects."
         }
 
         return SkillOpsRunInsightsReport(
             insights = insights,
             warnings = warnings,
+            platformName = "Codex",
         )
     }
+
+    fun buildReport(projectRoot: Path, settings: SkillOpsInsightsSettings): SkillOpsRunInsightsReport =
+        buildReport(projectRoot, settings, RunInsightsProgress.NONE)
 }
