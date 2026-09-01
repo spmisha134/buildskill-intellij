@@ -5,7 +5,10 @@ import java.nio.file.Path
 data class CodexSessionMetadata(
     val sessionId: String,
     val workingDirectory: Path?,
-    val initialPrompt: String?,
+    val title: String?,
+    val userPrompts: List<String>,
 ) {
+    val initialPrompt: String?
+        get() = userPrompts.firstOrNull()
     fun toResumeTarget(): SessionResumeTarget = SessionResumeTarget(sessionId, workingDirectory)
 }

@@ -72,6 +72,7 @@ class CodexRunInsightsService(
                 matchedSkillNames = matchedSkillNames,
                 recordedSkillNames = recordedSkillNames.ifEmpty { matchedSkillNames },
                 invocationCommand = accumulator.invocationCommand(),
+                prompts = accumulator.prompts(),
                 tokenUsage = tokenUsage,
                 efficiencySummary = efficiencySummary,
                 warnings = parseWarnings + efficiencySummary.warnings,

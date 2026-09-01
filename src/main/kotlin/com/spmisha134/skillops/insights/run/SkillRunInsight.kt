@@ -17,4 +17,5 @@ data class SkillRunInsight(
     val recordedSkillNames: List<String> = matchedSkillNames,
     val invocationCommand: String? = null,
     val resumeTarget: SessionResumeTarget? = null,
+    val prompts: List<String> = emptyList(),
 )

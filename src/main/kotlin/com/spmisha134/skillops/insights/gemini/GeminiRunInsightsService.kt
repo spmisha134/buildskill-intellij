@@ -91,9 +91,9 @@ class GeminiRunInsightsService(
         val notes = mutableListOf<String>()
         if (usage == null) notes += "No token usage event found in this session."
         if (sizeBytes >= settings.highOutputWarningBytes) {
-            notes += "Session log is very large ($sizeBytes bytes)."
+            notes += "Transcript size warning: $sizeBytes bytes may significantly slow scanning and increase context overhead."
         } else if (sizeBytes >= settings.largeOutputWarningBytes) {
-            notes += "Session log is large ($sizeBytes bytes)."
+            notes += "Transcript size warning: $sizeBytes bytes may slow scanning and increase context overhead."
         }
         if (searches >= settings.manySearchesThreshold) {
             notes += "High repository/search activity detected ($searches searches)."

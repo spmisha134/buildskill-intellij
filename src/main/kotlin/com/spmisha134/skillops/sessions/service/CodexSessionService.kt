@@ -47,7 +47,8 @@ class CodexSessionService(
             }
             CodexSession(
                 resumeTarget = metadata.toResumeTarget(),
-                initialPrompt = metadata.initialPrompt,
+                title = metadata.title,
+                userPrompts = metadata.userPrompts,
                 skillNames = (accumulator.matchedSkillNames() + accumulator.recordedSkillNames()).distinctBy(String::lowercase),
                 lastModifiedMs = file.lastModifiedMs,
                 totalTokens = accumulator.tokenUsage()?.totalTokens,

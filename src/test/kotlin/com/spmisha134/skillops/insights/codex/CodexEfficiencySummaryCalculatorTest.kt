@@ -37,7 +37,7 @@ class CodexEfficiencySummaryCalculatorTest {
         assertEquals(40.0, summary.cachedInputPercent)
         assertEquals(20.0, summary.reasoningOutputPercent)
         assertEquals(2, summary.searchCount)
-        assertTrue(summary.warnings.any { it.contains("Session log is large") })
+        assertTrue(summary.warnings.any { it.contains("Transcript size warning") })
         assertTrue(summary.warnings.any { it.contains("High repository/search activity") })
     }
 

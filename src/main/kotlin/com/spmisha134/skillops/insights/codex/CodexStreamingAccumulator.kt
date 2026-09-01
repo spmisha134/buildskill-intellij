@@ -3,6 +3,7 @@ package com.spmisha134.skillops.insights.codex
 import com.spmisha134.skillops.insights.parser.RawInsightEvent
 import com.spmisha134.skillops.insights.usage.TokenUsage
 import com.spmisha134.skillops.sessions.model.CodexSessionMetadata
+import com.spmisha134.skillops.sessions.discovery.CodexPromptSummary
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
 import java.util.UUID
@@ -23,8 +24,7 @@ class CodexStreamingAccumulator(
     private var invocationCommand: String? = null
     private var sessionId: String? = null
     private var workingDirectory: Path? = null
-    private var explicitInitialPrompt: String? = null
-    private var fallbackInitialPrompt: String? = null
+    private val userPrompts = mutableListOf<String>()
     private var searchCount = 0
     private var toolCallCount = 0
 
@@ -34,11 +34,11 @@ class CodexStreamingAccumulator(
         updateProjectMatch(event)
         tokenUsageExtractor.extract(listOf(event))?.let { latestTokenUsage = it }
 
-        val userCommand = userMessage(event)
+        val userCommand = CodexPromptSummary.userMessage(event)
         if (userCommand != null) {
             firstUserCommand = firstUserCommand ?: userCommand
             previousUserCommand = userCommand
-            explicitInitialPrompt = explicitInitialPrompt ?: userCommand
+            addHumanPrompt(userCommand)
         }
 
         if (isUserAuthored(event)) {
@@ -77,6 +77,8 @@ class CodexStreamingAccumulator(
 
     fun invocationCommand(): String? = invocationCommand ?: firstUserCommand
 
+    fun prompts(): List<String> = userPrompts.toList()
+
     fun efficiencyCounts(): Pair<Int, Int> = searchCount to toolCallCount
 
     fun resumeMetadata(fileName: String): CodexSessionMetadata? {
@@ -86,7 +88,8 @@ class CodexStreamingAccumulator(
         return CodexSessionMetadata(
             id,
             workingDirectory,
-            (explicitInitialPrompt ?: fallbackInitialPrompt)?.summarize(),
+            CodexPromptSummary.title(userPrompts),
+            userPrompts.toList(),
         )
     }
 
@@ -121,19 +124,11 @@ class CodexStreamingAccumulator(
             sessionId = string(payload, "id") ?: sessionId
             workingDirectory = string(payload, "cwd")?.toPathOrNull() ?: workingDirectory
         }
-        if (fallbackInitialPrompt == null && event.type == "response_item" && string(payload, "type") == "message" && string(payload, "role") == "user") {
-            fallbackInitialPrompt = payload.getAsJsonArray("content")?.mapNotNull { block ->
-                block.takeIf { it.isJsonObject }?.asJsonObject?.let {
-                    string(it, "text") ?: string(it, "input_text")
-                }
-            }?.joinToString(" ")?.takeIf(String::isNotEmpty)
-        }
+        CodexPromptSummary.responseItemPrompt(event)?.let(::addHumanPrompt)
     }
 
-    private fun userMessage(event: RawInsightEvent): String? {
-        val payload = event.payload?.getAsJsonObject("payload") ?: return null
-        if (string(payload, "type") != "user_message") return null
-        return string(payload, "message")?.trim()?.takeIf(String::isNotEmpty)
+    private fun addHumanPrompt(prompt: String) {
+        if (!CodexPromptSummary.isInjectedContext(prompt) && prompt !in userPrompts) userPrompts += prompt
     }
 
     private fun isUserAuthored(event: RawInsightEvent): Boolean {
@@ -172,11 +167,6 @@ class CodexStreamingAccumulator(
         null
     }
 
-    private fun String.summarize(): String {
-        val normalized = replace(WHITESPACE, " ").trim()
-        return if (normalized.length <= MAX_PROMPT_LENGTH) normalized else normalized.take(MAX_PROMPT_LENGTH - 1) + "…"
-    }
-
     private fun isUuid(value: String): Boolean = try {
         UUID.fromString(value)
         true
@@ -191,7 +181,5 @@ class CodexStreamingAccumulator(
         )
         private val TOOL_USE_PATTERN = Regex("\"type\"\\s*:\\s*\"tool_use\"")
         private val FILE_SESSION_ID = Regex("([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})(?:\\.jsonl)?$")
-        private val WHITESPACE = Regex("\\s+")
-        private const val MAX_PROMPT_LENGTH = 180
     }
 }

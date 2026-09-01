@@ -39,11 +39,11 @@ intellijPlatform {
         """.trimIndent()
         changeNotes = """
             <ul>
-                <li>Adds a first-class Resume Session action for continuing project Codex sessions in a new IntelliJ terminal.</li>
-                <li>Adds contextual Resume Session and Copy Session ID controls to Codex Run Insights.</li>
-                <li>Shows the explicit user request, working directory, and exact resume command for each session.</li>
+                <li>Preserves and displays Codex prompt history for Resume Session and Run Insights.</li>
+                <li>Derives concise session titles from the latest meaningful prompt and filters injected project instructions.</li>
+                <li>Prioritizes token metrics and efficiency details before prompts in Run Insights.</li>
+                <li>Explains transcript-size warnings in terms of scan time and context overhead.</li>
                 <li>Supports IntelliJ IDEA from 2024.2 onward and verifies compatibility through 2025.2.</li>
-                <li>Closes Run Insights and focuses the terminal after a session is resumed.</li>
             </ul>
         """.trimIndent()
 

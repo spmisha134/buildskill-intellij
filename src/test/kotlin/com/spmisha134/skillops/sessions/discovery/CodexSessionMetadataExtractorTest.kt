@@ -47,4 +47,23 @@ class CodexSessionMetadataExtractorTest {
 
         assertNull(extractor.extract(InsightJsonlParser().parse(file).events, file.fileName.toString()))
     }
+
+    @Test
+    fun `keeps human prompt history and titles session from latest prompt`() {
+        val file = temporaryFolder.newFile("rollout.jsonl").toPath()
+        Files.writeString(file, """
+            {"type":"session_meta","payload":{"id":"019cb301-f5cf-76c0-a1db-8ef3580d7800"}}
+            {"type":"response_item","payload":{"type":"message","role":"user","content":[{"text":"# AGENTS.md instructions for /repo"}]}}
+            {"type":"event_msg","payload":{"type":"user_message","message":"Investigate the resume session title"}}
+            {"type":"event_msg","payload":{"type":"user_message","message":"Then show all meaningful requests"}}
+        """.trimIndent())
+
+        val metadata = extractor.extract(InsightJsonlParser().parse(file).events, file.fileName.toString())
+
+        assertEquals("Then show all meaningful requests", metadata?.title)
+        assertEquals(
+            listOf("Investigate the resume session title", "Then show all meaningful requests"),
+            metadata?.userPrompts,
+        )
+    }
 }

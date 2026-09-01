@@ -30,9 +30,9 @@ class CodexEfficiencySummaryCalculator {
             warnings += "No token usage event found in this session."
         }
         if (sizeBytes >= settings.highOutputWarningBytes) {
-            warnings += "Session log is very large (${sizeBytes} bytes)."
+            warnings += "Transcript size warning: ${sizeBytes} bytes may significantly slow scanning and increase context overhead."
         } else if (sizeBytes >= settings.largeOutputWarningBytes) {
-            warnings += "Session log is large (${sizeBytes} bytes)."
+            warnings += "Transcript size warning: ${sizeBytes} bytes may slow scanning and increase context overhead."
         }
         if (searchCount >= settings.manySearchesThreshold) {
             warnings += "High repository/search activity detected ($searchCount searches)."

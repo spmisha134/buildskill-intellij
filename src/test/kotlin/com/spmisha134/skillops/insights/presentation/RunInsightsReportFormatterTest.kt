@@ -126,7 +126,7 @@ class RunInsightsReportFormatterTest {
             matchedSkillName = "update-deps",
             tokenUsage = null,
             efficiencySummary = EfficiencySummary(null, null, null, 1, emptyList()),
-            warnings = listOf("Session log is large (127805 bytes)."),
+            warnings = listOf("Transcript size warning: 127805 bytes may slow scanning and increase context overhead."),
         )
 
         val text = RunInsightsReportFormatter().format(insight)
@@ -146,7 +146,7 @@ class RunInsightsReportFormatterTest {
             matchedSkillName = null,
             tokenUsage = null,
             efficiencySummary = EfficiencySummary(null, null, null, 0, emptyList()),
-            warnings = listOf("Session log is large (60506 bytes)."),
+            warnings = listOf("Transcript size warning: 60506 bytes may slow scanning and increase context overhead."),
         )
 
         val text = RunInsightsReportFormatter().format(insight, platformName = "Claude")
@@ -172,7 +172,8 @@ class RunInsightsReportFormatterTest {
 
         val text = formatter.format(insight)
 
-        assertTrue(text.contains("Command: ${'$'}update-deps run the skill"))
+        assertTrue(text.contains("Prompts:"))
+        assertTrue(text.contains("1. ${'$'}update-deps run the skill"))
         assertTrue(formatter.runLabel(insight).isNotBlank())
     }
 }

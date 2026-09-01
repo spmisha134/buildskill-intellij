@@ -141,9 +141,21 @@ class CodexSessionsDialog(
     }
 
     private fun formatDetails(session: CodexSession): String = buildString {
-        appendLine("Task: ${session.initialPrompt ?: "(No task summary recorded)"}")
-        appendLine("Working directory: ${session.resumeTarget.workingDirectory ?: projectRoot}")
-        append("Command: ${CodexResumeCommand.build(session.resumeTarget.sessionId)}")
+        appendLine("Title: ${session.title ?: "(No task summary recorded)"}")
+        if (session.userPrompts.isNotEmpty()) {
+            appendLine()
+            appendLine("Prompts:")
+            session.userPrompts.forEachIndexed { index, prompt ->
+                appendLine("${index + 1}. $prompt")
+                if (index < session.userPrompts.lastIndex) appendLine()
+            }
+        }
+        appendLine()
+        appendLine("Working directory:")
+        appendLine(session.resumeTarget.workingDirectory ?: projectRoot)
+        appendLine()
+        appendLine("Command:")
+        append(CodexResumeCommand.build(session.resumeTarget.sessionId))
     }
 
     private class SessionTableModel(private val allSessions: List<CodexSession>) : AbstractTableModel() {
@@ -160,7 +172,7 @@ class CodexSessionsDialog(
             return when (columnIndex) {
                 0 -> DATE_FORMAT.format(Instant.ofEpochMilli(session.lastModifiedMs).atZone(ZoneId.systemDefault()))
                 1 -> session.resumeTarget.sessionId.take(8)
-                2 -> session.initialPrompt ?: "(No task summary)"
+                2 -> session.title ?: "(No task summary)"
                 3 -> session.skillNames.joinToString().ifBlank { "No skill" }
                 else -> session.totalTokens?.let { "%,d".format(it) } ?: "—"
             }
@@ -174,7 +186,8 @@ class CodexSessionsDialog(
                 listOfNotNull(
                     session.resumeTarget.sessionId,
                     session.resumeTarget.workingDirectory?.toString(),
-                    session.initialPrompt,
+                    session.title,
+                    session.userPrompts.joinToString(" "),
                     session.skillNames.joinToString(" "),
                 ).any { it.lowercase().contains(normalized) }
             }

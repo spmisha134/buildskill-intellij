@@ -4,6 +4,17 @@
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-09-01
+
+### Added
+- Preserve Codex prompt history for Resume Session and Run Insights.
+- Derive concise session titles from the latest meaningful prompt while filtering injected project instructions.
+
+### Changed
+- Show Run Insights sections in priority order: Tokens, Efficiency, Prompts, and Notes.
+- Explain transcript-size warnings in terms of scan time and context overhead.
+- Improve resume-session details with spaced sections and prompt history.
+
 ## [0.6.0] - 2026-08-16
 
 ### Added

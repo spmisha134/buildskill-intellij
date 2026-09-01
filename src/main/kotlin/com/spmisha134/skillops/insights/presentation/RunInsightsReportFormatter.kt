@@ -33,13 +33,21 @@ class RunInsightsReportFormatter {
         lines += "Skill: ${skillNames(insight).joinToString()}"
         lines += "Updated: ${formatInstant(insight.lastModifiedMs)}"
         insight.resumeTarget?.let { lines += "Session: ${it.sessionId}" }
-        insight.invocationCommand?.let { lines += "Command: $it" }
         lines += ""
         lines += "Tokens"
         lines += insight.tokenUsage.formatTokenLines()
         lines += ""
         lines += "Efficiency"
         lines += insight.formatEfficiencyLines()
+
+        val prompts = insight.prompts.ifEmpty { listOfNotNull(insight.invocationCommand) }
+        if (prompts.isNotEmpty()) {
+            lines += ""
+            lines += "Prompts:"
+            prompts.forEachIndexed { index, prompt ->
+                lines += "${index + 1}. $prompt"
+            }
+        }
 
         if (insight.warnings.isNotEmpty()) {
             lines += ""
@@ -93,8 +101,8 @@ class RunInsightsReportFormatter {
     }
 
     private fun String.improvementAdvice(platformName: String): String = when {
-        startsWith("Session log is very large") || startsWith("Session log is large") ->
-            "Start a new $platformName session for a separate task and avoid returning unnecessarily large command output."
+        startsWith("Transcript size warning") ->
+            "Start a new $platformName session for a separate task; avoid dumping large command output to limit scan time and context overhead."
         startsWith("High repository/search activity") ->
             "Narrow the request and point $platformName to the relevant files or package when they are known."
         startsWith("Rate limit usage is high") ->
